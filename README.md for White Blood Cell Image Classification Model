@@ -18,3 +18,25 @@ The model leverages **advanced techniques** and architectures to achieve high ac
 ## Overall Architecture of the Model
 
 ![Model Architecture](./main%20model%20architecture.png)
+
+
+White Blood Cell Image Classification Model:
+
+
+This README provides a detailed overview of a deep learning model designed for the classification of white blood cells from images.
+The model leverages advanced techniques and architectures to achieve high accuracy in image classification.
+
+Over all Architecture of the Model:
+
+ ![Image Alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/e5585a2ed9f4777059d6ae584d3fd262b8122822/main%20model%20architecture.png)
+
+
+
+# White Blood Cell Image Classification Model
+
+This README provides a detailed overview of a **deep learning model** designed for the classification of white blood cells from images.
+The model leverages **advanced techniques** and architectures to achieve high accuracy in image classification.
+
+## Overall Architecture of the Model
+
+![Model Architecture](./main%20model%20architecture.png)
