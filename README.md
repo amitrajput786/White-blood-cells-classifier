@@ -7,6 +7,8 @@ White blood cell (WBC) classification is a crucial task in medical diagnosis, as
 
 ## Over view of Model 
 
+![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/bbea0073ec1645ac9a02eb5c30f0b9faba0bba62/main%20model%20architecture.png)
+
 
 model is composed of four major components:
 
