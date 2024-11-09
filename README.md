@@ -44,7 +44,7 @@ This block implements selective kernel attention mechanism:
 
 ## model design of block 
 
-![image alt]()
+![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/f189d97e7fb90d2df86f618dd28964b19367ac6c/Sk%20block%20architecture.png)
 
 Contains two parallel branches:
 
