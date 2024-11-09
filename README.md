@@ -152,7 +152,7 @@ This architecture is designed to effectively capture both fine-grained details a
 
 ## Training validation loss plots : 
 
-![image alt]()
+![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/fe98aef0a6a5c2b59535d7636406be5184e6cfcf/training%20and%20%20validation%20loss%20for%20white%20blood%20cells%20classifiaction.png)
 
 
 ## References :
