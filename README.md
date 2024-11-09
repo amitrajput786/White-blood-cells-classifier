@@ -65,7 +65,7 @@ This block enhances feature representation by:
 
 ## model design of block 
 
-![image alt]()
+![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/e017b2556b7a9a5b81342d31b5aaa4c248a30cb3/CAB%20block%20architecture.png)
 
 Using depthwise convolutions with different kernel sizes (5×5 and 7×7)
 
