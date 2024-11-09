@@ -143,7 +143,7 @@ This architecture is designed to effectively capture both fine-grained details a
  i have plot the matrix for  my results 
 
 
-![image alt}()
+![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/18b15e576289d52517857b1aab1d74e1ea73d48b/confusion%20matrix%20of%20%20white%20blood%20classification%20model.png)
 
  ## Training validation  accuracy plot :
   we have found very good results for it . 
