@@ -117,9 +117,6 @@ This architecture is designed to effectively capture both fine-grained details a
 
 ## Results 
 
-i have got excellent results  the validation accuracy approx to 99%. which is  highest among all existing research work . 
-
-![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/ce186216295b7d9a7ba5f5dd9c36f2e5ceea26de/pbc%20datasets%20with%20the%203%20block%20attach%20with%20dkcab%20block%20.png)
 
 
 ## validation accuracy 
@@ -127,7 +124,11 @@ i have got excellent results  the validation accuracy approx to 99%. which is  h
  Trained model on PBC datasets which contain five thousands     images along with different batch sizes -8,16,32 . 
  we had got excellent results on 8 and with the training epoch -56 .
 
-![image]()
+ i have got excellent results  the validation accuracy approx to 99%. which is  highest among all existing research work . 
+
+![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/ce186216295b7d9a7ba5f5dd9c36f2e5ceea26de/pbc%20datasets%20with%20the%203%20block%20attach%20with%20dkcab%20block%20.png)
+
+
 
  ## ROC curve :
 
