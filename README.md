@@ -42,6 +42,9 @@ which are used to extract  features from the image.
 ## SK block
 This block implements selective kernel attention mechanism:
 
+## model design of block 
+
+![image alt]()
 
 Contains two parallel branches:
 
@@ -53,11 +56,16 @@ Features dynamic selection between different kernel sizes
 Helps in capturing multi-scale information
 Uses attention mechanism to adaptively adjust the importance of different receptive fields
 
-## model design of block 
+ 
+
 
 ## Context Attention Block 
 This block enhances feature representation by:
 
+
+## model design of block 
+
+![image alt]()
 
 Using depthwise convolutions with different kernel sizes (5×5 and 7×7)
 
@@ -108,16 +116,21 @@ Model checkpointing for best validation accuracy
 This architecture is designed to effectively capture both fine-grained details and global context necessary for accurate white blood cell classification.
 ## Results 
 
+![image alt]()
+
 
 ## validation accuracy 
 
  Trained model on PBC datasets which contain five thousands     images along with different batch sizes -8,16,32 . 
  we had got excellent results on 8 and with the training epoch -56 .
 
+![image]()
 
  ## ROC curve :
 
  i have plot  the ROC curve for our above results 
+
+ ![image alt]()
 
 
 
@@ -126,14 +139,16 @@ This architecture is designed to effectively capture both fine-grained details a
  i have plot the matrix for  my results 
 
 
+![image alt}()
+
  ## Training validation  accuracy plot :
   we have found very good results for it . 
 
-
+![image alt]()
 
 ## Training validation loss plots : 
 
-
+![image alt]()
 
 
 ## References :
