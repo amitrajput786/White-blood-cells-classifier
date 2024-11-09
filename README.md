@@ -134,7 +134,7 @@ This architecture is designed to effectively capture both fine-grained details a
 
  i have plot  the ROC curve for our above results 
 
- ![image alt]()
+ ![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/5181fad8f760c9db5c8025a554a519ba24826303/ROC%20curve%20%20%20for%20it.png)
 
 
 
