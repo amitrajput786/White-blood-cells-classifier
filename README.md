@@ -114,9 +114,12 @@ Model checkpointing for best validation accuracy
 
 
 This architecture is designed to effectively capture both fine-grained details and global context necessary for accurate white blood cell classification.
+
 ## Results 
 
-![image alt]()
+i have got excellent results  the validation accuracy approx to 99%. which is  highest among all existing research work . 
+
+![image alt](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/ce186216295b7d9a7ba5f5dd9c36f2e5ceea26de/pbc%20datasets%20with%20the%203%20block%20attach%20with%20dkcab%20block%20.png)
 
 
 ## validation accuracy 
