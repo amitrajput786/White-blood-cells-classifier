@@ -32,14 +32,31 @@ A novel deep learning approach for white blood cell classification achieving **9
 
 ![Model Architecture](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/bbea0073ec1645ac9a02eb5c30f0b9faba0bba62/main%20model%20architecture.png)
 
-### Core Components:
-1. **Backbone**: MobileNetV2 (pre-trained on ImageNet)
-2. **SK Block**:
-   [![Selective Kernel attention for multi-scale features](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/Sk%20block%20architecture.png)]
-3. **Multi-fusion Block**:
-  [![Feature integration mechanism](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/mutli_fusion.png)  
-4. **Channel Attention Block (CAB)**:
-  [![Context-aware feature enhancement](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/CAB%20block%20architecture.png)]
+## 🔍 Core Components
+
+### 1. **Backbone: MobileNetV2**
+MobileNetV2, pre-trained on ImageNet, serves as the base feature extractor. It provides a lightweight yet effective architecture for capturing low-level and high-level semantic information.
+
+---
+
+### 2. **Selective Kernel (SK) Block**
+The SK block adaptively selects receptive field sizes by combining multiple convolutional branches with different kernel sizes. It enhances the model’s ability to capture multi-scale features.
+
+![Selective Kernel attention for multi-scale features](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/Sk%20block%20architecture.png)
+
+---
+
+### 3. **Multi-Fusion Block**
+This block integrates features from different scales and resolutions, allowing the network to better understand contextual information and improve classification performance.
+
+![Feature integration mechanism](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/mutli_fusion.png)
+
+---
+
+### 4. **Channel Attention Block (CAB)**
+The CAB enhances feature representation by applying channel-wise attention, focusing on informative features while suppressing irrelevant ones.
+
+![Context-aware feature enhancement](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/CAB%20block%20architecture.png)
 
 ## 📊 Results & Performance
 
@@ -102,10 +119,10 @@ Experience the model in action: **[Try on Hugging Face](https://huggingface.co/s
 - **Model Training**: GPU-accelerated training pipeline
 
 ### Production Deployment:
-- **Backend**: Flask, FastAPI for REST API
-- **Containerization**: Docker with multi-stage builds
+- **Backend**:  FastAPI for Api endpooints and Html(jinja) of UI
+- **Containerization**: Docker with multi-stage builds, using containerization
 - **Cloud Platform**: Hugging Face Spaces
-- **API Framework**: RESTful endpoints with JSON responses
+- **API Framework**: Fast API endpoints with JSON responses
 - **Image Processing**: PIL, OpenCV for preprocessing
 - **Model Serving**: TensorFlow Serving optimized inference
 
@@ -118,7 +135,7 @@ Experience the model in action: **[Try on Hugging Face](https://huggingface.co/s
 │   ├── evaluation/     # Performance analysis and metrics
 │   └── README.md       # Technical model documentation
 ├── deployment/         # Production deployment files
-│   ├── app.py         # Flask web application
+│   ├── app.py         # web application
 │   ├── main.py        # Core inference and prediction logic
 │   ├── orchestration.py # Model loading and preprocessing
 │   ├── Dockerfile     # Multi-stage container build
@@ -207,12 +224,13 @@ This project is part of ongoing medical AI research. For collaboration opportuni
 
 **Research Inquiries**: [Your Email]
 **GitHub**: [@amitrajput786](https://github.com/amitrajput786)
-**LinkedIn**: [Your LinkedIn Profile]
+**LinkedIn**: [@Amit Kumar](https://www.linkedin.com/in/amit-kumar-41a241225/)
 
 ## 📚 References
 
 Primary inspiration and methodology references:
 - [IEEE Paper Reference](https://ieeexplore.ieee.org/document/10274670)
+- 
 - Additional research papers cited in the full publication
 
 ## 📄 License
