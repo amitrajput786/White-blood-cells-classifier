@@ -34,9 +34,12 @@ A novel deep learning approach for white blood cell classification achieving **9
 
 ### Core Components:
 1. **Backbone**: MobileNetV2 (pre-trained on ImageNet)
-2. **SK Block**: Selective Kernel attention for multi-scale features
-3. **Multi-fusion Block**: Feature integration mechanism  
-4. **Channel Attention Block (CAB)**: Context-aware feature enhancement
+2. **SK Block**:
+   [![Selective Kernel attention for multi-scale features](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/Sk%20block%20architecture.png)]
+3. **Multi-fusion Block**:
+  [![Feature integration mechanism](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/mutli_fusion.png)  
+4. **Channel Attention Block (CAB)**:
+  [![Context-aware feature enhancement](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/CAB%20block%20architecture.png)]
 
 ## 📊 Results & Performance
 
@@ -55,6 +58,7 @@ A novel deep learning approach for white blood cell classification achieving **9
 | **Training/Validation Loss** | ![Loss](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/fe98aef0a6a5c2b59535d7636406be5184e6cfcf/training%20and%20%20validation%20loss%20for%20white%20blood%20cells%20classifiaction.png) |
 | **ROC Curve** | ![ROC](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/5181fad8f760c9db5c8025a554a519ba24826303/ROC%20curve%20%20%20for%20it.png) |
 | **Confusion Matrix** | ![CM](https://github.com/jsdfsfw3456/White-blood-cells-classifier/blob/18b15e576289d52517857b1aab1d74e1ea73d48b/confusion%20matrix%20of%20%20white%20blood%20classification%20model.png) |
+| **Grad_cam visualization** | ![Grad_cam](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/grad_cam.png) |
 
 ## 🚀 Live Demo & Deployment
 
