@@ -1,16 +1,27 @@
 # White Blood Cells Classification - Novel Deep Learning Architecture
 
-[![Novel_architecture](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/main%20model%20architecture.png)
+[![Novel_architecture](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/main%20model%20architecture.png)]
+
+Researched Model Novel architecture used for White blood cells classification.
+
 ![Accuracy](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/pbc%20datasets%20with%20the%203%20block%20attach%20with%20dkcab%20block%20.png)
-[![Paper](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/paper_demo.png)
-![Demo](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/deploy_demo.png)](https://huggingface.co/spaces/adffedccasfe/WBC)
+
+Researched Model Accuracy on [PBC](https://www.kaggle.com/datasets/kylewang1999/pbc-dataset) white Blood cells images
+
+[![Paper](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/paper_demo.png)]
+
+Abstract of the Research paper(Under Review)
+
+[![Demo](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/deploy_demo.png)](https://huggingface.co/spaces/adffedccasfe/WBC)
+
+Demo of Deployed above research model
+
+Live demo to this link: https://huggingface.co/spaces/adffedccasfe/WBC
 
 ## 🎯 Project Overview
-
 A novel deep learning approach for white blood cell classification achieving **99.58% validation accuracy** - the highest reported accuracy among existing research work. This project combines custom CNN architecture with attention mechanisms for medical image analysis.
 
 ## 🏆 Key Achievements
-
 - 🥇 **State-of-the-art Performance**: 99.58% validation accuracy on PBC dataset
 - 🔬 **Novel Architecture**: Custom CNN with SK blocks, Multi-fusion blocks, and Channel Attention Blocks
 - 🚀 **Production Ready**: Successfully deployed on Hugging Face Spaces
