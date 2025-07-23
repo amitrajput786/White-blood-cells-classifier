@@ -1,9 +1,9 @@
 # White Blood Cells Classification - Novel Deep Learning Architecture
 
-[![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)](https://www.python.org/)
-[![Accuracy](https://img.shields.io/badge/accuracy-99.58%25-brightgreen.svg)](https://huggingface.co/spaces/adffedccasfe/WBC)
-[![Paper](https://img.shields.io/badge/paper-under%20review-orange.svg)]()
-[![Demo](https://img.shields.io/badge/demo-Hugging%20Face-yellow.svg)](https://huggingface.co/spaces/adffedccasfe/WBC)
+[![Novel_architecture](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/main%20model%20architecture.png)
+![Accuracy](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/pbc%20datasets%20with%20the%203%20block%20attach%20with%20dkcab%20block%20.png)
+[![Paper](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/paper_demo.png)
+![Demo](https://github.com/amitrajput786/White-blood-cells-classifier/blob/main/data%20/images/deploy_demo.png)](https://huggingface.co/spaces/adffedccasfe/WBC)
 
 ## 🎯 Project Overview
 
