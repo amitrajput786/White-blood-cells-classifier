@@ -1,0 +1,18 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.20
+
+# Deep Learning (NumPy 2.x compatible versions)
+tensorflow>=2.16.0
+keras>=3.3.0
+
+# Computer Vision (NumPy 2.x compatible versions)
+opencv-python>=4.9.0.80
+
+# Data Science
+matplotlib>=3.9.0
+pandas>=2.2.0
+huggingface-hub>=0.21.0
+
+# Utilities
+Pillow>=10.0.0
