@@ -6,7 +6,7 @@
 ## Problem Statement
 
 A deep learning architecture for WBC classification achieved **99.57% accuracy** on the
-PBC dataset but dropped to **84.89%** when tested on the Raabin dataset — same 5 classes,
+PBC dataset  when it is trained and tested on same PBC but dropped to **84.89%** when tested on the Raabin dataset — same 5 classes,
 different microscope, different staining protocol.
 
 Eosinophils F1 collapsed from **1.00 → 0.10**.
