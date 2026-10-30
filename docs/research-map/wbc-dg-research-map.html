@@ -1,0 +1,1351 @@
+<title>WBC-DG Research Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sticky view rail over one working column; the Map and Matrix views widen into scroll containers.
+   Colour logic from a Giemsa smear: azure = your path and decisions, eosin = misconceptions and traps,
+   green = held, amber = forecasts waiting on an experiment. */
+:root {
+  --bg: #f3f2f6; --surface: #ffffff; --surface2: #f7f6fa; --ink: #1b1930; --muted: #5b586f; --line: #d9d6e3;
+  --azure: #3c3ea6; --azuresoft: #e8e8f8; --eosin: #b3402c; --eosinsoft: #fbe8e3; --ok: #1d7446; --oksoft: #e0f1e7;
+  --amber: #8a5a00; --ambersoft: #fbefd6; --edge: #b9b5cc;
+  --c0: #c43b2b; --c30: #d0661c; --c50: #a8860c; --c70: #6a9a1f; --c90: #2b8a4a; --c100: #17785a;
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121119; --surface: #1a1924; --surface2: #22202e; --ink: #e8e6f1; --muted: #a29fb6; --line: #312f42;
+  --azure: #a9abf6; --azuresoft: #25254c; --eosin: #f0907a; --eosinsoft: #3a201a; --ok: #66c690; --oksoft: #15301f;
+  --amber: #e7b65a; --ambersoft: #352a12; --edge: #4a4760;
+  --c0: #f07a68; --c30: #f09a5a; --c50: #dcc04f; --c70: #a7d167; --c90: #66c690; --c100: #4fd1a6; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121119; --surface: #1a1924; --surface2: #22202e; --ink: #e8e6f1; --muted: #a29fb6; --line: #312f42;
+  --azure: #a9abf6; --azuresoft: #25254c; --eosin: #f0907a; --eosinsoft: #3a201a; --ok: #66c690; --oksoft: #15301f;
+  --amber: #e7b65a; --ambersoft: #352a12; --edge: #4a4760;
+  --c0: #f07a68; --c30: #f09a5a; --c50: #dcc04f; --c70: #a7d167; --c90: #66c690; --c100: #4fd1a6; color-scheme: dark; }
+
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { border-bottom: 2px solid var(--ink); }
+header.top .wrap { padding-block: 22px 16px; display: flex; flex-direction: column; gap: 8px; }
+.toprow { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.kicker, .eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 40px); line-height: 1.05; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: clamp(22px, 3.3vw, 28px); line-height: 1.15; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 19px; line-height: 1.25; margin: 0; text-wrap: balance; }
+h4 { font-family: var(--f-display); font-weight: 600; font-size: 16px; margin: 0; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 70ch; }
+.save { font-family: var(--f-mono); font-size: 11px; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+.save::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--edge); }
+.save.ok::before { background: var(--ok); } .save.local::before { background: var(--amber); } .save.busy::before { background: var(--azure); }
+
+nav.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+nav.tabs .row { display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; scrollbar-width: thin; }
+nav.tabs button { flex: 0 0 auto; font-family: var(--f-mono); font-size: 12px; padding: 6px 10px; border-radius: 4px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+nav.tabs button:hover { color: var(--ink); border-color: var(--line); }
+nav.tabs button.on { background: var(--azure); color: var(--surface); }
+main .wrap { padding-block: 22px 64px; display: flex; flex-direction: column; gap: 16px; }
+.stagehead { display: flex; flex-direction: column; gap: 6px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pill { font-family: var(--f-mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); white-space: nowrap; }
+.pill.azure { color: var(--azure); border-color: var(--azure); }
+.pill.eosin { color: var(--eosin); border-color: var(--eosin); }
+.pill.ok { color: var(--ok); border-color: var(--ok); }
+.pill.amber { color: var(--amber); border-color: var(--amber); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card.key { border-left: 4px solid var(--azure); }
+.card.trap { border-left: 4px solid var(--eosin); }
+.card.done { border-left: 4px solid var(--ok); }
+.card.wait { border-left: 4px solid var(--amber); }
+.card .head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.grid2 > *, .grid3 > * { min-width: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+ul.list, ol.steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+ul.list li { padding-left: 16px; position: relative; }
+ul.list li::before { content: ""; position: absolute; left: 2px; top: .66em; width: 6px; height: 6px; border-radius: 50%; background: var(--azure); }
+ul.list.eosin li::before { background: var(--eosin); }
+ol.steps { counter-reset: s; }
+ol.steps li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; counter-increment: s; }
+ol.steps li::before { content: counter(s); font-family: var(--f-mono); font-size: 11px; color: var(--surface); background: var(--ink); border-radius: 3px; text-align: center; padding: 2px 0; margin-top: 4px; }
+a { color: var(--azure); }
+code { font-family: var(--f-mono); font-size: .86em; background: var(--surface2); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
+pre.code { font-family: var(--f-mono); font-size: 12.5px; line-height: 1.55; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; overflow-x: auto; margin: 0; white-space: pre; tab-size: 4; max-width: 100%; }
+.eq { font-family: var(--f-mono); font-size: 14px; background: var(--azuresoft); border-radius: 4px; padding: 10px 14px; overflow-x: auto; line-height: 1.7; }
+.eq sub, .eq sup { font-size: .72em; }
+blockquote { margin: 0; padding: 8px 14px; border-left: 3px solid var(--line); color: var(--muted); font-style: italic; }
+details { border: 1px solid var(--line); border-radius: 5px; background: var(--surface2); }
+details > summary { cursor: pointer; padding: 8px 12px; font-family: var(--f-mono); font-size: 12px; color: var(--azure); list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "+ "; }
+details[open] > summary::before { content: "− "; }
+details > .in { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.scroll { overflow-x: auto; max-width: 100%; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.tbl th { text-align: left; font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); padding: 6px 10px 6px 0; vertical-align: bottom; }
+table.tbl td { border-bottom: 1px solid var(--line); padding: 7px 10px 7px 0; vertical-align: top; }
+table.tbl tr:last-child td { border-bottom: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.fields { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 6px 14px; font-size: 15px; }
+.fields > dt { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+.fields > dd { margin: 0; min-width: 0; }
+@media (max-width: 560px) { .fields { grid-template-columns: minmax(0, 1fr); } .fields > dd { margin-bottom: 6px; } }
+label.lab { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+textarea, input[type=text], select { width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; }
+textarea { min-height: 84px; resize: vertical; }
+textarea.tall { min-height: 140px; }
+textarea:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--eosin); outline-offset: 2px; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.btn { font-family: var(--f-mono); font-size: 12px; padding: 7px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 4px; cursor: pointer; }
+.btn:hover { border-color: var(--azure); }
+.btn.primary { background: var(--azure); color: var(--surface); border-color: var(--azure); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btnrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.note { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.callout { background: var(--azuresoft); border-radius: 5px; padding: 10px 14px; }
+.callout.eosin { background: var(--eosinsoft); } .callout.ok { background: var(--oksoft); } .callout.amber { background: var(--ambersoft); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 28px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.statrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.bar { height: 8px; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--ok); }
+
+/* question block */
+.q { border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
+.q .stem { font-weight: 600; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opt { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; cursor: pointer; background: var(--surface2); }
+.opt input { margin-top: 5px; accent-color: var(--azure); }
+.opt.right { border-color: var(--ok); background: var(--oksoft); }
+.opt.wrong { border-color: var(--eosin); background: var(--eosinsoft); }
+.conf { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.conf .lab { margin-right: 6px; }
+.conf button { font-family: var(--f-mono); font-size: 12px; min-width: 44px; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface2); color: var(--ink); cursor: pointer; }
+.conf button[aria-pressed="true"] { color: var(--surface); border-color: transparent; }
+.conf button[data-c="0"][aria-pressed="true"] { background: var(--c0); } .conf button[data-c="30"][aria-pressed="true"] { background: var(--c30); }
+.conf button[data-c="50"][aria-pressed="true"] { background: var(--c50); } .conf button[data-c="70"][aria-pressed="true"] { background: var(--c70); }
+.conf button[data-c="90"][aria-pressed="true"] { background: var(--c90); } .conf button[data-c="100"][aria-pressed="true"] { background: var(--c100); }
+.verdict { border-radius: 5px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.verdict.right { background: var(--oksoft); } .verdict.wrong { background: var(--eosinsoft); } .verdict.wait { background: var(--ambersoft); }
+
+/* map */
+.mapbox { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.mapbox svg { display: block; }
+.mapbox .nodebox { cursor: pointer; }
+.mapbox .nodebox:focus-visible rect { stroke: var(--eosin); stroke-width: 3; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 16px; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.legend i { width: 14px; height: 10px; border-radius: 2px; display: inline-block; border: 1.5px solid var(--edge); }
+
+/* matrix */
+table.mx { border-collapse: separate; border-spacing: 4px; font-size: 13px; min-width: 860px; }
+table.mx th { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 400; text-align: left; vertical-align: bottom; padding: 4px; }
+table.mx th.row { text-transform: none; font-family: var(--f-display); font-size: 13.5px; color: var(--ink); font-weight: 600; letter-spacing: 0; width: 150px; vertical-align: top; }
+table.mx td { background: var(--surface2); border: 1px solid var(--line); border-radius: 5px; padding: 6px; vertical-align: top; min-width: 96px; cursor: pointer; }
+table.mx td.gap { border: 1.5px dashed var(--eosin); background: var(--eosinsoft); }
+table.mx td.sel { outline: 2px solid var(--azure); }
+table.mx td.cost { cursor: default; background: transparent; border: 0; font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.chip { display: inline-block; font-family: var(--f-mono); font-size: 11px; padding: 1px 6px; margin: 1px 2px 1px 0; border-radius: 3px; border: 1px solid var(--edge); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chip.held { border-color: var(--ok); } .chip.mis { border-color: var(--eosin); } .chip.mine { background: var(--azuresoft); border-color: var(--azure); }
+
+.cal svg { width: 100%; max-width: 520px; height: auto; }
+footer { border-top: 1px solid var(--line); }
+footer .wrap { padding-block: 18px 30px; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.out { white-space: pre-wrap; font-size: 15px; background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; }
+.loop { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.loop div { border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; background: var(--surface2); display: flex; flex-direction: column; gap: 2px; }
+.loop b { font-family: var(--f-display); font-weight: 600; }
+.loop span { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="toprow"><span class="kicker">Amit Kumar · ML Lab NIT Rourkela · collaboration with MIU, ISI Kolkata</span><span class="save" id="saveState">Loading your progress…</span></div>
+  <h1>WBC-DG Research Map</h1>
+  <p class="lede">Learn each paper until it feels obviously true, connect its mathematics to your own DM-FNet experiments, test the connection on Kaggle, write the TL;DR, and turn it into a proposal or a question for its authors. The goal stays fixed: a model with few parameters that holds every class on a lab it has never seen.</p>
+</div></header>
+
+<nav class="tabs" aria-label="Views"><div class="wrap"><div class="row" id="tabRow"></div></div></nav>
+<main><div class="wrap" id="view"></div></main>
+<footer><div class="wrap">
+  <span>Built from your DM-FNet paper (BSPC 2026), the 3 Oct 2026 collaboration deck, Prof. Mitra's group's feedback, your repo's <code>Production/wbc_generalization_project</code>, and the deep-research report you shared. The method follows learnharness: measure first, one step at a time, verify every step, practise from memory.</span>
+  <span>Numbers from other papers are as reported in your research report or deck. Check each against the paper before you quote it.</span>
+</div></footer>
+<script>
+/* ================= CONTENT (static) =================
+   Question shape: {id, stem, opts, a, why, models?, mode?}
+   a = index of the correct option, or -1 for a FORECAST (resolved later by your own experiment).
+   models[i] = the wrong mental model that option i represents (diagnostic distractors, as in learnharness). */
+
+var STRANDS = [
+  { id: "dg", name: "DG settings and vocabulary" },
+  { id: "phys", name: "Image formation: stain and optics" },
+  { id: "norm", name: "Normalization layers under shift" },
+  { id: "eval", name: "Evaluation protocol" },
+  { id: "why", name: "Why models fail across labs" },
+  { id: "light", name: "Parameter cost of robustness" },
+  { id: "stats", name: "Small-sample honesty" }
+];
+
+/* Probe: three levels per strand. Entry is near the top (level 3), as the learnharness prober does. */
+var PROBE = {
+  dg: [
+    { id: "pr-dg-1", stem: "You train on PBC and test on Raabin. The model never sees a Raabin image during training. Which setting is this?", opts: ["Single-source domain generalization", "Multi-source domain generalization", "Unsupervised domain adaptation", "In-distribution testing"], a: 0, why: "One training domain and an unseen target: single-source DG. Domain adaptation would use target images during training.", models: [null, "counts the test lab as a source", "thinks any new lab means adaptation", "ignores that the lab changed"] },
+    { id: "pr-dg-2", stem: "You merge PBC and Raabin, split the images at random, and report 99% on the held-out split. What does 99% measure?", opts: ["In-distribution accuracy on two domains", "Multi-source DG to a new lab", "Single-source DG", "Few-shot domain adaptation"], a: 0, why: "The test images come from the same two datasets the model trained on. Nothing in the test is a new domain.", models: [null, "treats 'two sources' as enough for DG", "confuses with the PBC-only run", "thinks merging labels is adaptation"] },
+    { id: "pr-dg-3", stem: "Before testing on a new lab you recompute BatchNorm statistics from 300 unlabelled images of that lab. How must this row be labelled in a DG paper?", opts: ["Test-time adaptation: it uses target images, so it is not DG", "Domain generalization, because no labels are used", "Multi-source DG, since two sets of statistics are combined", "In-distribution evaluation, since BN statistics are not weights"], a: 0, why: "DG means no access to the target domain at all. Using unlabelled target images is unsupervised (test-time) adaptation, so it gets its own row and label.", models: [null, "'no labels' = DG", "mixing statistics = multiple sources", "statistics don't count as learning"], mode: "disc" }
+  ],
+  phys: [
+    { id: "pr-ph-1", stem: "In a brightfield smear, what does a pixel's optical density OD = −log(I/I₀) scale with?", opts: ["The amount of stain at that pixel", "The brightness of the lamp", "The camera's white balance", "The image resolution"], a: 0, why: "Beer–Lambert: transmitted light falls exponentially with absorber amount, so its log (OD) is linear in stain amount. Dividing by I₀ removes the lamp.", models: [null, "forgets the division by I₀", "mixes camera processing into the physics", "mixes optics into absorption"] },
+    { id: "pr-ph-2", stem: "PBC uses May-Grünwald-Giemsa; Raabin uses Giemsa. In OD = A·S (A = stain amount per pixel, S = stain colour vectors), what does a change of protocol mainly change?", opts: ["S, the stain colour vectors (with some global scaling of A)", "Only A, the amount each cell takes up", "Nothing: stain shift exists only in RGB", "Only the background I₀"], a: 0, why: "The dyes' absorption spectra set S. Staining time and concentration also scale A globally. What a granule binds, relative to other structures, is the biology you want to keep.", models: [null, "thinks protocol = biology", "thinks OD hides colour", "confuses lamp with stain"] },
+    { id: "pr-ph-3", stem: "Reinhard normalization matches each crop's LAB mean and standard deviation to a target. An eosinophil crop full of orange granules and a neutrophil crop from the same slide both go through it. What can happen?", opts: ["Each gets a different correction because the cell itself shifts the crop statistics, so some cell colour is removed along with the lab's cast", "Both get the same correction because they come from the same slide", "Nothing, since Reinhard only changes brightness", "Granules become more orange, so eosinophils get easier"], a: 0, why: "The statistics are computed per crop and include the cell. A crop dominated by orange granules has a shifted mean, so Reinhard partly 'corrects away' the very colour that defines the class.", models: [null, "thinks statistics are per slide", "forgets the a and b channels", "assumes normalization adds contrast"] }
+  ],
+  norm: [
+    { id: "pr-no-1", stem: "At inference time, a standard BatchNorm layer normalizes with…", opts: ["the mean and variance stored from training", "the mean and variance of the current test batch", "the mean and variance of each single image", "nothing: BN is switched off at inference"], a: 0, why: "In inference mode BN uses its moving_mean and moving_variance, which are frozen statistics of the training data.", models: [null, "describes training mode", "describes instance norm", "thinks BN is like dropout"] },
+    { id: "pr-no-2", stem: "A source-trained BN layer sees target activations with mean μT and std σT. Its stored statistics are μS and σS. For a target activation with its own z-score zT, what does the layer output (before γ, β)?", opts: ["(σT/σS)·zT + (μT − μS)/σS", "zT exactly", "zT − μS", "(σS/σT)·zT"], a: 0, why: "x = μT + σT·zT, and BN computes (x − μS)/σS. Substitute and you get a per-channel scale σT/σS and shift (μT − μS)/σS. That error repeats at every BN layer.", models: [null, "assumes BN re-normalizes per input", "drops the scale term", "inverts the ratio"] },
+    { id: "pr-no-3", stem: "Why does GroupNorm avoid that particular error?", opts: ["It computes statistics per image over groups of channels at test time, so no stored dataset statistics are applied", "It stores statistics per group, averaged over more data", "It removes colour from the input", "It has more parameters, so it can learn both domains"], a: 0, why: "GroupNorm's statistics come from the current image, so nothing learned from the source distribution is imposed on target activations.", models: [null, "thinks GN still stores statistics", "confuses with grayscale", "thinks capacity solves shift"] }
+  ],
+  eval: [
+    { id: "pr-ev-1", stem: "You pick the best epoch by watching Raabin test accuracy, then report Raabin test accuracy. What is wrong?", opts: ["The test set drove a choice, so the reported number is optimistic", "Nothing, as long as you looked only once", "Nothing, because epochs are not hyperparameters", "It makes the number pessimistic"], a: 0, why: "Any decision made with test data turns the test into part of training. Your technique 5 fixed exactly this.", models: [null, "thinks a single look is harmless", "thinks only weights can leak", "reverses the bias"] },
+    { id: "pr-ev-2", stem: "In DomainBed, which model-selection rule is honest for domain generalization?", opts: ["A validation split drawn only from the training domains", "A small labelled set from the test domain, used to pick the checkpoint", "The checkpoint with the best test accuracy averaged over seeds", "The checkpoint with the lowest training loss"], a: 0, why: "Training-domain validation (or leave-one-domain-out over training domains) is allowed. Test-domain selection is the 'oracle', reported only as an upper bound.", models: [null, "the oracle", "averaging doesn't remove test leakage", "ignores overfitting"] },
+    { id: "pr-ev-3", stem: "Neutrophils are about 61% of Raabin. Accuracy is 84.89% while eosinophil F1 is 0.10. Which identity explains how both can be true?", opts: ["Accuracy = Σk πk·recallk, so the common class dominates", "Accuracy = mean of the per-class recalls", "Accuracy = macro-F1 × number of classes", "Accuracy and F1 are measured on different images"], a: 0, why: "Accuracy is recall weighted by class prior. A 61% class with high recall carries the number even when a 7% class collapses.", models: [null, "that's balanced accuracy", "invents a relation", "doubts the measurement"], mode: "disc" }
+  ],
+  why: [
+    { id: "pr-wh-1", stem: "Raabin's basophils come from a single CML patient. If basophil F1 collapses on Raabin, what kind of shift could that partly be?", opts: ["Manifestation or population shift: the cells themselves differ, not only the imaging", "Pure acquisition shift: only the camera changed", "Label noise only", "Prevalence shift only"], a: 0, why: "Leukaemic basophils from one patient can look different from normal basophils. That is a change in P(x|y) caused by biology, which no colour fix can undo.", models: [null, "assumes every shift is the camera", "blames annotators first", "confuses 'how often' with 'how it looks'"] },
+    { id: "pr-wh-2", stem: "In Castro, Walker and Glocker's terms, which shift can a normalization method fix in principle?", opts: ["Acquisition shift (scanner, stain protocol)", "Manifestation shift (the disease looks different)", "Prevalence shift (class frequencies differ)", "Annotation shift (labelling policy differs)"], a: 0, why: "Normalization acts on how the image was produced. It cannot change biology, class frequencies, or labels.", models: [null, "over-trusts normalization", "prevalence needs reweighting, not normalization", "labels aren't in the image"], mode: "disc" },
+    { id: "pr-wh-3", stem: "D'Amour et al.'s 'underspecification' says what about two models with the same held-out score?", opts: ["They can rely on different features and behave very differently on a new lab", "They must have learned the same features", "The one with fewer parameters always generalizes better", "Their errors must fall on the same test images"], a: 0, why: "Many predictors fit the training distribution equally well. Which cue each one uses only shows up when deployment breaks a correlation.", models: [null, "equal score = equal model", "size myth", "same score = same errors"] }
+  ],
+  light: [
+    { id: "pr-li-1", stem: "Which of these DG fixes adds zero parameters at inference?", opts: ["Training with MixStyle", "An ensemble of two backbones", "Replacing MobileNetV2 with a ViT-L foundation model", "Keeping a domain-classifier head at inference"], a: 0, why: "MixStyle mixes feature statistics during training and is switched off at inference. It has no weights.", models: [null, "ensembles double the cost", "foundation models are 20M–300M+", "adversarial heads are dropped after training"] },
+    { id: "pr-li-2", stem: "AdaBN on DM-FNet: how many new parameters does it add?", opts: ["Zero: it only recomputes the stored BN means and variances", "One per BN layer", "As many as the backbone, since it fine-tunes it", "It doubles the classification head"], a: 0, why: "Means and variances are buffers that already exist. AdaBN replaces their values; it adds nothing.", models: [null, "counts buffers as new weights", "confuses with fine-tuning", "confuses with a new head"] },
+    { id: "pr-li-3", stem: "Your research report cites a benchmark of 15 frozen hematology encoders (DinoBloom among them). What did it find across datasets?", opts: ["Large macro-F1 losses (34–72%) and poor calibration: scale did not buy robustness", "Losses under 5%", "The largest model beat every lightweight model on every dataset", "No adaptation was ever needed"], a: 0, why: "As reported (arXiv 2608.25148): 34–72% macro-F1 loss across datasets and ECE rising from 0.004 to 0.35. Size alone is not the mechanism.", models: [null, "assumes FMs are robust", "size = robustness", "pretraining = no shift"] }
+  ],
+  stats: [
+    { id: "pr-st-1", stem: "61 correct out of 100 images. Roughly what is the 95% interval?", opts: ["About 51% to 71%", "About 60% to 62%", "About 31% to 91%", "You cannot compute one without more data"], a: 0, why: "Standard error = √(0.61·0.39/100) ≈ 0.049. Times 1.96 ≈ ±9.6 points. Wilson gives 51.2–70.0%.", models: [null, "forgets n is only 100", "overestimates the noise", "thinks small n forbids an interval"] },
+    { id: "pr-st-2", stem: "With about 20 images per class, one misclassified cell moves that class's F1 by roughly…", opts: ["0.05 to 0.10", "0.001", "0.5", "Nothing, F1 is stable"], a: 0, why: "One error out of ~20 moves recall by 0.05; precision for the receiving class moves too. Your deck says exactly this.", models: [null, "thinks per-class F1 is pooled", "overestimates", "assumes F1 ignores single errors"] },
+    { id: "pr-st-3", stem: "Two configurations differ by 1.5 macro-F1 points on one seed. WILDS reports Camelyon17 results swinging up to 7.4 points across seeds. What should you do before claiming a win?", opts: ["Run at least 3 seeds per configuration and compare mean ± SD", "Report the better seed", "Train longer until the gap grows", "Switch to accuracy"], a: 0, why: "Seed variance can be larger than your effect. Mean ± SD over seeds is the minimum.", models: [null, "cherry-picking", "longer training changes the model, not the noise", "metric change doesn't fix variance"] }
+  ]
+};
+
+/* ================= NODES =================
+   group: found | exp | paper | out.  tier for papers: core | collab | context | later. */
+var NODES = [
+  /* ---------- Foundations: unconditional truths (learnharness Principle i) ---------- */
+  { id: "f-support", group: "found", short: "Support", title: "A model is only trained where its data is", strands: ["why"], req: [],
+    statement: "Training minimises the average loss over training images. Images unlike any training image contribute nothing to that average, so nothing in training constrains what the model does on them.",
+    eqHtml: "min<sub>h</sub> E<sub>(x,y)~P<sub>S</sub></sub>[ ℓ(h(x), y) ]&nbsp;&nbsp;— a region where P<sub>S</sub>(x) = 0 has weight 0",
+    yours: "PBC → Raabin: Raabin colours, cameras and smears sit partly outside PBC's training range.",
+    checks: [{ id: "c-f-support-1", stem: "Why can't more epochs on PBC fix Raabin performance?", opts: ["More training only lowers loss on PBC-like images; nothing in the objective rewards being right on images unlike them", "The model is underfitting PBC", "MobileNetV2 is too small", "Raabin is mislabelled"], a: 0, why: "Your PBC accuracy is already 99.57%. The objective is satisfied; the Raabin errors are outside what it measures.", models: [null, "PBC is already near perfect", "size myth", "blames the data first"] }] },
+  { id: "f-factor", group: "found", short: "Four factors", title: "A shift lives in one of four factors", strands: ["why"], req: [],
+    statement: "P(x, y) = P(x | y) · P(y). Between two labs, how each class looks can change (P(x|y): through acquisition or through biology), how often each class appears can change (P(y)), or how labels were assigned can change (P(y|x)). Every failure you will read about lives in one or more of these.",
+    eqHtml: "P(x,y) = P(x|y)·P(y)<br>acquisition &amp; manifestation → P(x|y)&nbsp;&nbsp;|&nbsp;&nbsp;prevalence → P(y)&nbsp;&nbsp;|&nbsp;&nbsp;annotation → P(y|x)",
+    yours: "These are the rows of your Puzzle Matrix.",
+    checks: [{ id: "c-f-factor-1", stem: "Neutrophils are 26% of PBC and 61% of Raabin. Which factor changed, and what does that do to accuracy?", opts: ["P(y), prevalence: accuracy re-weights toward neutrophils, so it can rise or fall with no change in any per-class recall", "P(x|y): neutrophils look different", "P(y|x): labelling changed", "None: class percentages don't affect accuracy"], a: 0, why: "Accuracy = Σ πk·recallk. Change π and accuracy moves even if every recall is fixed.", models: [null, "confuses frequency with appearance", "confuses frequency with labels", "forgets the prior weighting"], mode: "disc" }] },
+  { id: "f-beer", group: "found", short: "Beer–Lambert", title: "Optical density is linear in stain amount", strands: ["phys"], req: [],
+    statement: "Light through a stained cell: I = I₀·exp(−A·S). Taking logs, OD = −log(I/I₀) = A·S. S (one colour vector per dye) is set by the lab's protocol. A (how much of each dye sits at each pixel) is set by the cell. The microscope and camera then add blur, resolution loss, noise, white balance and compression on top.",
+    eqHtml: "I = I<sub>0</sub>·exp(−A·S)&nbsp;&nbsp;⇒&nbsp;&nbsp;OD = −log(I/I<sub>0</sub>) = A·S<br>S: stain vectors (protocol)&nbsp;&nbsp;·&nbsp;&nbsp;A: stain amounts (biology)&nbsp;&nbsp;·&nbsp;&nbsp;then optics and camera",
+    yours: "Slide 8 of your deck. It splits 'stain shift' into a part you may remove (S, camera) and a part you must keep (A).",
+    checks: [{ id: "c-f-beer-1", stem: "Why compute stain features in OD space rather than RGB?", opts: ["In OD, dye contributions add linearly, so they can be separated", "RGB holds less information than OD", "OD removes blur", "OD turns images grayscale"], a: 0, why: "Linearity is the whole point: OD = A·S is a matrix product you can factorize (Macenko, NMF, BeerLaNet).", models: [null, "it's the same information, re-expressed", "optics are untouched by a pixel transform", "confuses with luminance"] }] },
+  { id: "f-bn", group: "found", short: "BN statistics", title: "BatchNorm imposes training statistics on every input", strands: ["norm"], req: [],
+    statement: "At inference a BN layer computes γ·(x − μS)/σS + β with μS, σS frozen from training. On target activations x = μT + σT·z, the output becomes a per-channel scale and shift error, repeated at every BN layer.",
+    eqHtml: "(x − μ<sub>S</sub>)/σ<sub>S</sub> = (σ<sub>T</sub>/σ<sub>S</sub>)·z<sub>T</sub> + (μ<sub>T</sub> − μ<sub>S</sub>)/σ<sub>S</sub>",
+    yours: "DM-FNet's backbone is MobileNetV2, which is full of BN layers. Frozen in the paper means ImageNet statistics; 3-zone tuning updates some of them on merged data.",
+    checks: [{ id: "c-f-bn-1", stem: "Two labs differ only by a constant brightness offset in early feature maps. What happens at a source-trained BN layer?", opts: ["Every normalized activation is shifted by (μT − μS)/σS, and the error propagates to later layers", "The offset is removed, since BN normalizes", "Only the first layer is affected", "Nothing, because ReLU clips it"], a: 0, why: "Inference-mode BN subtracts the stored mean, not the input's mean, so the offset passes through, scaled by 1/σS.", models: [null, "thinks BN re-normalizes per input", "forgets propagation", "ReLU doesn't undo a shift"] }] },
+  { id: "f-acc", group: "found", short: "Accuracy identity", title: "Accuracy is recall weighted by class frequency", strands: ["eval"], req: [],
+    statement: "Accuracy = Σk πk · recallk, where πk is the share of class k in the test set. A common class with high recall can hide a rare class that collapses.",
+    eqHtml: "Acc = Σ<sub>k</sub> π<sub>k</sub>·recall<sub>k</sub>&nbsp;&nbsp;&nbsp;Balanced acc = (1/K)·Σ<sub>k</sub> recall<sub>k</sub>",
+    yours: "84.89% accuracy next to macro-F1 0.556 on Raabin.",
+    checks: [{ id: "c-f-acc-1", stem: "PBC → Raabin: accuracy 84.89%, macro-F1 0.556. Which metric should lead a DG table, and why?", opts: ["Macro-F1 with per-class and worst-class F1, because accuracy is weighted by class frequency and hides rare-class collapse", "Accuracy, because readers know it", "Micro-F1, since it equals accuracy and sounds more formal", "ROC-AUC, since your paper reports AUC 1.00"], a: 0, why: "The question a DG reader asks is 'which class breaks on a new lab'. Only per-class numbers answer it.", models: [null, "familiarity over meaning", "micro-F1 = accuracy here", "AUC hides threshold and calibration failures"] }] },
+  { id: "f-test", group: "found", short: "Test stays test", title: "A choice made with test data turns the test into training", strands: ["eval"], req: [],
+    statement: "Any decision (epoch, threshold, augmentation, architecture) made by looking at test results makes that test part of training. The number becomes optimistic, and you can no longer say how much.",
+    eqHtml: "report on T&nbsp;&nbsp;⇒&nbsp;&nbsp;choose using S-validation only",
+    yours: "Technique 5 removed validation_data = test_dataset. In DG, the 'test' is a whole lab, so validation must come from training labs.",
+    checks: [{ id: "c-f-test-1", stem: "Technique 5 fixed 'validation_data = test_dataset'. Why does that change the meaning of the old 99%?", opts: ["The checkpoint was chosen by its test score, so the test set influenced training decisions", "It doesn't, because the weights never saw test labels", "Only the loss curve is affected", "It made the number pessimistic"], a: 0, why: "Checkpoint selection is a decision. Selecting on test turns test into validation.", models: [null, "thinks only gradients leak", "underestimates selection", "reverses the bias"] }] },
+  { id: "f-bound", group: "found", short: "Ben-David bound", title: "Target error is bounded by source error, divergence and joint error", strands: ["why"], req: ["f-support"],
+    statement: "For any classifier h: target error ≤ source error + ½ × how distinguishable the domains are to the hypothesis class + λ, the error of the best single classifier on both domains together. Normalization can shrink the divergence term. Nothing you do to the images can shrink λ if the classes really look different in the two labs.",
+    eqHtml: "ε<sub>T</sub>(h) ≤ ε<sub>S</sub>(h) + ½·d<sub>HΔH</sub>(S, T) + λ,&nbsp;&nbsp;&nbsp;λ = min<sub>h'</sub> [ε<sub>S</sub>(h') + ε<sub>T</sub>(h')]",
+    yours: "Ben-David et al., 'A theory of learning from different domains', Machine Learning 2010.",
+    checks: [{ id: "c-f-bound-1", stem: "Which term does stain normalization try to shrink, and which term can it not touch?", opts: ["It shrinks the divergence term; it cannot reduce λ, which is large if cells genuinely differ between labs", "It shrinks εS only", "It shrinks λ only", "It shrinks all three equally"], a: 0, why: "Making the images look alike lowers divergence. λ measures whether one rule can be right on both, which is about the biology.", models: [null, "confuses fit with shift", "inverts the roles", "treats the bound as one blob"] }] },
+
+  /* ---------- Your experiments (from the repo and the deck) ---------- */
+  { id: "e-single", group: "exp", short: "PBC → Raabin", title: "Your single-source failure: PBC → Raabin", strands: ["dg", "eval"], req: ["f-acc", "f-factor"],
+    facts: ["Trained on PBC only, frozen MobileNetV2 backbone: <b>99.57%</b> on PBC, <b>84.89%</b> on Raabin.", "Per-class F1 on Raabin: eosinophil <b>0.10</b>, basophil <b>0.15</b>, monocyte 0.69, neutrophil 0.92, lymphocyte 0.92. Macro-F1 <b>0.556</b>.", "PBC: CellaVision DM96, May-Grünwald-Giemsa, Barcelona. Raabin: smartphone cameras on two microscopes, Giemsa, about 73 smears.", "Files: <code>Models/99.57+accuracy_model-code.py</code>; CSV rows <code>baseline_pbc_only</code>, <code>baseline_raabin_test</code>."],
+    predict: { id: "p-e-single", stem: "Forecast: you retrain DM-FNet within PBC on grayscale images and test on PBC (no domain shift). Eosinophil F1 will…", opts: ["stay at 0.95 or above: shape and texture are enough", "fall to between 0.70 and 0.95", "fall below 0.70: colour is needed"], a: -1, why: "Resolved by the grayscale trial below. If eosinophil F1 collapses in-domain, colour is signal, and that is direct evidence for Prof. Mitra's point 4." },
+    checks: [
+      { id: "c-e-single-1", stem: "Eosinophils and basophils collapse first. What property of these two classes makes them most exposed to a stain shift?", opts: ["They are defined mainly by granule colour, which the stain sets", "They are the largest cells", "They have the most training images", "Their nuclei are always round"], a: 0, why: "Eosinophils: coarse orange-red granules. Basophils: dark blue-black granules. Change the dye and you change the defining feature.", models: [null, "size isn't the cue", "they are the minority", "nuclear shape isn't their cue"] },
+      { id: "c-e-single-2", stem: "Which caveat about the basophil collapse must your paper state?", opts: ["Raabin's basophils come from one CML patient, so part of the drop may be manifestation shift", "Basophils are mislabelled in PBC", "The model has too few parameters for basophils", "Basophils are absent from Raabin"], a: 0, why: "A reviewer who knows Raabin will ask. Saying it first makes the rest of your analysis credible.", models: [null, "no evidence for this", "size myth", "Raabin has 301 basophils"] }],
+    trial: { title: "Grayscale ablation inside PBC", measure: "Per-class F1, RGB vs grayscale, 3 seeds each, PBC train and test only.", code: "def to_gray3(img, label):\n    g = tf.image.rgb_to_grayscale(img)          # keep 3 channels for the ImageNet backbone\n    return tf.image.grayscale_to_rgb(g), label\n\ntrain_g = train_ds.map(to_gray3)\nval_g = val_ds.map(to_gray3)\ntest_g = test_ds.map(to_gray3)\n# Train DM-FNet on PBC twice (RGB, gray), seeds 0, 1, 2.\n# Compare eosinophil and basophil F1. No other change." } },
+  { id: "e-ladder", group: "exp", short: "Fix ladder", title: "The fix ladder: Reinhard, merging, oversampling, unfreezing", strands: ["phys", "norm"], req: ["e-single", "f-beer"],
+    facts: ["<code>wbc_merged_frozen</code>: Reinhard + PBC/Raabin merge + oversampling + class weights, all at once, backbone frozen: 0.91 accuracy, eosinophil F1 0.97, basophil 0.17. The CSV note says the model was 'stuck at 20% train acc'.", "Unfreezing from layer 110: basophil 0.89. Layer 90 + wider kernels (<code>wbc14</code>): macro-F1 0.930.", "3-zone fine-tuning (zones 11–27, 38–54, 90–117) + proper split (<code>wbc20</code>): 0.99 on the merged split.", "Reinhard target: mean [181.25, 142.23, 131.06], std [40.71, 9.86, 13.54] in LAB."],
+    predict: { id: "p-e-ladder", stem: "Forecast: rerun merge + oversampling + class weights WITHOUT Reinhard. Eosinophil F1 on the merged test split will be…", opts: ["0.90 or above: merging did most of the work", "below 0.50: Reinhard did most of the work", "between 0.50 and 0.90"], a: -1, why: "Resolved by the ablation trial. Today the eosinophil jump cannot be credited to any one technique." },
+    checks: [
+      { id: "c-e-ladder-1", stem: "The row wbc_merged_frozen turned on stain normalization, merging and oversampling at the same time. What can you conclude about Reinhard from it alone?", opts: ["Nothing specific: three simultaneous changes are confounded", "Reinhard caused the eosinophil jump", "Merging caused it", "Oversampling caused it"], a: 0, why: "Change one thing at a time, or run the full factorial. This is the ablation a reviewer will ask for.", models: [null, "credits the first technique listed", "credits the most intuitive one", "credits the last one"], mode: "disc" },
+      { id: "c-e-ladder-2", stem: "The repo notes say the fully frozen backbone got stuck at about 20% train accuracy on merged data, yet DM-FNet's frozen backbone reached 99.58% on PBC. 20% is chance for 5 classes. What is the cheapest first check?", opts: ["Inspect one batch: pixel range and preprocess_input after Reinhard, and the BN mode of the frozen backbone", "Add more layers", "Train for 200 epochs", "Switch to ResNet50"], a: 0, why: "Chance-level training accuracy usually means a pipeline fault (wrong scaling, labels misaligned, inputs saturated), not a capacity problem. One batch printout settles it.", models: [null, "capacity myth", "time won't fix a broken input", "backbone swap hides the bug"] }],
+    trial: { title: "One-change-at-a-time ablation", measure: "Eosinophil, basophil and macro-F1 for: merge only; merge + oversampling; merge + Reinhard; all three. Same split, 3 seeds.", code: "configs = {\n    \"merge\":            dict(reinhard=False, oversample=False),\n    \"merge+over\":       dict(reinhard=False, oversample=True),\n    \"merge+reinhard\":   dict(reinhard=True,  oversample=False),\n    \"merge+both\":       dict(reinhard=True,  oversample=True),\n}\n# Before training, check one batch from each pipeline:\nx, y = next(iter(train_ds))\nprint(x.dtype, float(tf.reduce_min(x)), float(tf.reduce_max(x)))  # MobileNetV2 expects [-1, 1]\nprint(np.bincount(np.argmax(y, axis=-1)))                          # labels look sane?" } },
+  { id: "e-ood", group: "exp", short: "99% vs 61%", title: "In-distribution 99% against unseen-source 61%", strands: ["eval", "stats", "phys"], req: ["e-ladder", "f-test"],
+    facts: ["<code>wbc20</code> on the merged split (4,781 images): 0.99. This is <b>in-distribution</b>: Raabin was in training and the split is by image.", "<code>wbc20</code> on a new source (100 images): <b>0.61</b> (Wilson 95% interval about 51–70%). Eosinophil 0.78, basophil 0.80, lymphocyte <b>0.42</b>, monocyte <b>0.46</b>, neutrophil 0.85.", "Your deck's hypothesis: colour matching fixed the colour-defined classes. Something else, such as optics, resolution or focus, now limits the classes separated by chromatin texture and nuclear shape."],
+    predict: { id: "p-e-ood", stem: "Forecast: you blur and downsample PBC test images to mimic a phone camera, with no colour change, and test the PBC model. Which classes drop most?", opts: ["Lymphocyte and monocyte", "Eosinophil and basophil", "All about equally", "None drop noticeably"], a: -1, why: "Resolved by the optics trial. If lymphocyte and monocyte drop most, optics is a real component of your shift, and your deck's hypothesis gets its first evidence." },
+    checks: [
+      { id: "c-e-ood-1", stem: "Raabin comes from about 73 smears, split by image. Why does that inflate the 99%?", opts: ["Cells from the same smear land in both train and test, so the test shares smear-level conditions with training", "Raabin images are duplicated", "The test set is too large", "Smears don't matter for single-cell crops"], a: 0, why: "Stain batch, focus and camera settings are per smear. Split by smear (or slide, or patient) so the test smear is new.", models: [null, "no evidence of duplicates", "size isn't the issue", "ignores smear-level conditions"] },
+      { id: "c-e-ood-2", stem: "On the unseen source, eosinophil and basophil recovered but lymphocyte and monocyte fell. Which factor does this point to first?", opts: ["Optics and resolution: those classes are separated by chromatin texture and nuclear shape, the fine detail blur destroys", "Stain chemistry: lymphocytes are defined by granule colour", "Prevalence: lymphocytes are rare", "Label noise in the new source"], a: 0, why: "Lymphocytes and monocytes are told apart by nuclear outline and chromatin, not granule colour. With only 100 images this is a direction to test, not a finding.", models: [null, "lymphocytes have no granules", "lymphocytes are common", "possible, but not the first hypothesis"] }],
+    trial: { title: "Inject optics shift only", measure: "Per-class F1 on PBC test at scale ∈ {1, 0.5, 0.33} and blur σ ∈ {0, 1, 2}. No colour change.", code: "def gaussian_kernel(sigma, size=7):\n    ax = tf.range(-(size // 2), size // 2 + 1, dtype=tf.float32)\n    g = tf.exp(-ax ** 2 / (2.0 * sigma ** 2)); g = g / tf.reduce_sum(g)\n    return tf.tensordot(g, g, axes=0)\n\ndef phone_like(img, label, scale=0.5, sigma=1.2):\n    h, w = tf.shape(img)[0], tf.shape(img)[1]\n    hs = tf.cast(tf.cast(h, tf.float32) * scale, tf.int32)\n    ws = tf.cast(tf.cast(w, tf.float32) * scale, tf.int32)\n    img2 = tf.image.resize(tf.image.resize(img, [hs, ws]), [h, w])   # lose resolution\n    k = tf.tile(gaussian_kernel(sigma)[..., None, None], [1, 1, 3, 1])\n    img2 = tf.nn.depthwise_conv2d(img2[None], k, [1, 1, 1, 1], \"SAME\")[0]\n    return img2, label\n\n# test_ds.map(lambda x, y: phone_like(x, y, 0.5, 1.2)) -> per-class F1\n\nfrom statsmodels.stats.proportion import proportion_confint\nprint(proportion_confint(61, 100, method=\"wilson\"))   # about (0.512, 0.700)" } },
+  { id: "e-integrity", group: "exp", short: "Integrity", title: "Integrity checks before anyone reads your numbers", strands: ["eval"], req: ["f-test"],
+    facts: ["<code>wbc22</code> has identical numbers to <code>wbc20</code> on new_dataset2, and the same parameter count, despite a different architecture. Re-run before using it as evidence that architecture is not the bottleneck.", "Paper Fig. 8(b), Raabin confusion matrix: the 'Basophils' row sums to about 2,660, but Table 2 lists 301 Raabin basophils. Check the class-index order used for the figure labels.", "Parameter count: the paper reports 3.41M; the CSV's total_params are 2.83M–3.0M. Write down which configuration each number refers to.", "Repo README calls the merged-split test 'completely unseen'. It is held-out images from the training sources."],
+    checks: [
+      { id: "c-e-int-1", stem: "In Fig. 8(b) the basophil row sums to about 2,660, but Raabin has 301 basophils. What is the most likely explanation, and what should you do?", opts: ["The row labels are probably in the wrong order (2,660 fits the neutrophil count); check the class-index mapping and correct the figure", "Basophils were oversampled in the test set", "Raabin really has 2,660 basophils", "It doesn't matter for the paper"], a: 0, why: "Keras' alphabetical folder order versus the order you typed the labels is a common cause. Prof. Mitra's group read your materials closely; fix it before they find it.", models: [null, "oversampling applies to training, not test", "contradicts your own Table 2", "published figures are evidence"] },
+      { id: "c-e-int-2", stem: "wbc22 has identical numbers to wbc20 but a different architecture. What is the right reading?", opts: ["Probably a logging or evaluation error: re-run before using it as evidence", "Architecture truly doesn't matter", "The two models are the same", "It proves the dataset is too small"], a: 0, why: "Two different networks producing identical per-class F1 to two decimals on 100 images is unlikely. Treat it as a bug until re-run.", models: [null, "over-reads a suspicious row", "contradicts the config columns", "a different claim entirely"] }],
+    trial: { title: "Integrity pass", measure: "Each item fixed or explained in the repo README.", code: "# 1. Re-evaluate wbc22 from its own saved weights; print a hash of the weights file.\n# 2. print(train_ds.class_names) or the flow_from_directory class_indices; compare with the figure labels.\n# 3. model.count_params() for the exact configuration reported in the paper and in the CSV.\n# 4. README: 'completely unseen test set' -> 'held-out images from the training sources'." } },
+
+  /* ---------- Papers ---------- */
+  { id: "p-castro", group: "paper", tier: "core", short: "Castro 2020", title: "Causality matters in medical imaging", cite: "Castro, Walker & Glocker, Nature Communications 2020", url: "https://www.nature.com/articles/s41467-020-17478-w", strands: ["why"], req: ["f-factor", "e-single"], cells: ["manif|measure", "prev|measure"], params: "none (theory)", target: "no",
+    piece: "A vocabulary for what changes between datasets, built on the causal direction between image and diagnosis. It names population, acquisition, annotation, prevalence and manifestation shift (and selection bias). Acquisition shift can be addressed by normalization or adaptation; manifestation shift cannot be corrected without strong assumptions.",
+    eqHtml: "Acquisition: P(x|y) changes because of the device&nbsp;&nbsp;·&nbsp;&nbsp;Manifestation: P(x|y) changes because the disease looks different<br>Prevalence: P(y) changes&nbsp;&nbsp;·&nbsp;&nbsp;Annotation: P(y|x) changes",
+    numbers: ["Quoted in your report: there are 'no guarantees for extrapolating to variation absent from training'."],
+    readFor: ["The table of shift types and the examples for each.", "Why the causal direction (does the disease cause the image?) decides what is fixable."],
+    link: "Your PBC → Raabin drop mixes at least three Castro shifts: acquisition (MGG vs Giemsa, CellaVision vs phone), prevalence (neutrophils 26% vs 61%), manifestation (basophils from one CML patient). Your proposal's sharpest move is to measure them separately.",
+    predict: { id: "p-castro", stem: "Before reading: can image normalization fix a shift where the disease itself looks different at the new hospital?", opts: ["No: normalization only targets how the image was acquired", "Yes, if the normalization is learned", "Yes, with enough augmentation", "Only with a foundation model"], a: 0, why: "Manifestation shift changes the biology in the image. No transformation of colour or texture can recover a class appearance the model never saw." },
+    checks: [
+      { id: "c-castro-1", stem: "Which Castro category is 'neutrophils are 26% of PBC and 61% of Raabin'?", opts: ["Prevalence shift", "Acquisition shift", "Manifestation shift", "Annotation shift"], a: 0, why: "Class frequencies changed. Nothing about how a neutrophil looks needs to change for this.", models: [null, "camera", "biology", "labels"], mode: "disc" },
+      { id: "c-castro-2", stem: "Prof. Mitra's point 4 asks how to separate acquisition variation from task features. Which framing from Castro is cleanest?", opts: ["Acquisition shift changes P(x|y) through the device; normalization should target only that part and leave the biology alone", "Treat all colour as acquisition", "Treat all shift as prevalence", "Skip causality and just augment"], a: 0, why: "This is the sentence that turns 'stain normalization' into a precise, testable claim.", models: [null, "throws away granule colour", "wrong factor", "avoids the question she asked"] }],
+    trial: { title: "Separate prevalence from the rest", measure: "Raabin accuracy at Raabin priors vs at PBC priors, from the same per-class recalls. No retraining.", code: "import numpy as np\n# cm: confusion matrix on Raabin, rows = true class, same class order as pbc_counts\nrecall = cm.diagonal() / cm.sum(axis=1)\npi_raabin = cm.sum(axis=1) / cm.sum()\npi_pbc = np.array(pbc_counts) / np.sum(pbc_counts)\nprint(\"acc @ Raabin priors:\", (pi_raabin * recall).sum())\nprint(\"acc @ PBC priors:   \", (pi_pbc * recall).sum())\n# Same recalls, different weights: the difference is pure prevalence shift." },
+    askHint: "For cell-level hematology, where the stain partly defines the class (eosinophil granules), would you classify a stain-protocol change as pure acquisition shift, or as a mix of acquisition and manifestation?" },
+
+  { id: "p-shortcut", group: "paper", tier: "context", short: "Shortcuts", title: "Shortcut learning and underspecification", cite: "Geirhos et al. 2020; D'Amour et al. 2020", url: "https://arxiv.org/abs/2004.07780", url2: "https://arxiv.org/abs/2011.03395", strands: ["why"], req: ["f-support"], cells: [], params: "none (theory)", target: "no",
+    piece: "Networks pick whichever cue most easily fits the training data. Many models with the same held-out score use different cues, and the difference only shows on new data.",
+    eqHtml: "Many h with ε<sub>S</sub>(h) ≈ min, but ε<sub>T</sub>(h) varies widely",
+    numbers: ["Zech et al.: CNNs identified the source hospital from chest X-rays at 99.95%; pneumonia AUC 0.931 internal vs 0.815 external (as cited in your report)."],
+    readFor: ["Geirhos: the definition and the examples figure.", "D'Amour: the medical imaging case study."],
+    link: "Granule colour could be a shortcut for eosinophils in PBC, yet it is also genuine diagnostic signal. That tension is the scientific core of your project.",
+    predict: { id: "p-shortcut", stem: "Before reading: two models score 99.5% on PBC. Will they score the same on Raabin?", opts: ["Not necessarily: they may rely on different cues", "Yes, same in-domain score means the same model", "Yes, if they share an architecture", "Only if trained with the same seed"], a: 0, why: "This is underspecification. Seeds alone can change which cue a model uses." },
+    checks: [{ id: "c-shortcut-1", stem: "If grayscale kills eosinophil F1 even in-domain, what does that show?", opts: ["Colour carries class information, so a normalizer must preserve part of the colour signal", "Colour is a shortcut that should be removed", "The model is too small", "Grayscale images are corrupted"], a: 0, why: "A shortcut is a cue that correlates with the label in training and breaks later. Granule colour is causally part of what an eosinophil is.", models: [null, "calls every easy cue a shortcut", "size myth", "blames the data"] }],
+    trial: null, askHint: "" },
+
+  { id: "p-domainbed", group: "paper", tier: "core", short: "DomainBed", title: "In search of lost domain generalization", cite: "Gulrajani & Lopez-Paz, ICLR 2021", url: "https://arxiv.org/abs/2007.01434", strands: ["eval"], req: ["f-test", "e-ood"], cells: ["stain|measure", "optics|measure"], params: "protocol", target: "no",
+    piece: "A DG algorithm without a model-selection rule is incomplete. Under fair selection, carefully tuned ERM is very hard to beat.",
+    eqHtml: "Model selection: (1) training-domain validation&nbsp;&nbsp;(2) leave-one-domain-out CV over training domains&nbsp;&nbsp;(3) test-domain 'oracle', upper bound only",
+    numbers: ["In their benchmark, no algorithm clearly beat ERM on average once selection was fair."],
+    readFor: ["Section on model selection.", "The main results table: compare every method to the ERM row."],
+    link: "Technique 5 fixed test-as-validation. For DG you also need validation drawn from the training labs only, at least 3 seeds, and a baseline of ERM with strong colour augmentation.",
+    predict: { id: "p-domainbed", stem: "Before reading: under a fair protocol, do elaborate DG methods beat plain ERM by a large margin?", opts: ["No: gains are usually small or absent", "Yes, by 10+ points", "Only on medical data", "Only with ViTs"], a: 0, why: "That is DomainBed's headline. It is why every claim you make must be against a strong ERM baseline." },
+    checks: [
+      { id: "c-domainbed-1", stem: "Which of DomainBed's three selection methods is only an upper bound?", opts: ["Test-domain validation (the oracle)", "Training-domain validation", "Leave-one-domain-out CV over training domains", "None, all three are equally honest"], a: 0, why: "The oracle peeks at the test domain. It shows the ceiling, never your result.", models: [null, "honest", "honest", "misses the leak"], mode: "disc" },
+      { id: "c-domainbed-2", stem: "What baseline must any new WBC-DG method beat?", opts: ["ERM with strong colour or stain augmentation, under the same protocol", "ERM without augmentation", "The best published number on PBC", "A ViT foundation model"], a: 0, why: "Jahanifar et al. found plain stain augmentation beat 28 DG algorithms on MIDOG22 patches. A weak baseline inflates every gain.", models: [null, "too weak", "in-domain number", "different question"] }],
+    trial: { title: "Leave-one-dataset-out skeleton", measure: "Macro-F1 and worst-class F1 per held-out dataset, mean ± SD over 3 seeds.", code: "domains = [\"pbc\", \"raabin\", \"source3\"]      # add Matek, Bodzas, LISC as you get them\nresults = []\nfor held_out in domains:\n    train_doms = [d for d in domains if d != held_out]\n    for seed in [0, 1, 2]:\n        tf.keras.utils.set_random_seed(seed)\n        tr, va = split_each(train_doms, val_frac=0.1, by=\"smear\")   # validation from TRAINING domains only\n        model = build_dmfnet()\n        model.fit(tr, validation_data=va, epochs=50,\n                  callbacks=[tf.keras.callbacks.ModelCheckpoint(\"best.keras\", save_best_only=True)])\n        model = tf.keras.models.load_model(\"best.keras\")\n        results.append((held_out, seed, per_class_f1(model, load(held_out))))   # touched once" },
+    askHint: "" },
+
+  { id: "p-wilds", group: "paper", tier: "context", short: "WILDS", title: "WILDS: in-the-wild distribution shifts", cite: "Koh et al., ICML 2021", url: "https://arxiv.org/abs/2012.07421", strands: ["eval"], req: ["f-test"], cells: [], params: "protocol", target: "no",
+    piece: "Ten real datasets, each with in-distribution and out-of-distribution test splits defined by domain. An ID → OOD gap appeared in every one.",
+    eqHtml: "Report ID and OOD side by side; OOD split = held-out domains (hospitals, cameras, regions)",
+    numbers: ["Camelyon17-WILDS: ERM about 93.2% ID → 70.3% OOD (as cited in your report)."],
+    readFor: ["How each dataset defines its domains.", "The Camelyon17 section."],
+    link: "Your table mixes the merged-split 99% (ID) with the unseen-source 61% (OOD). Put them in two labelled columns.",
+    predict: { id: "p-wilds", stem: "Guess: Camelyon17 ERM goes from about 93% ID to about what OOD?", opts: ["About 70%", "About 92%", "About 50%", "About 85%"], a: 0, why: "As reported: 93.2 → 70.3. Augmentation alone recovers much of it, which is why the dataset is near saturated." },
+    checks: [{ id: "c-wilds-1", stem: "What does WILDS do that your results table should copy?", opts: ["Report ID and OOD columns side by side, with the OOD split defined by domain", "Report only the best number", "Average ID and OOD into one score", "Drop the OOD column if the test set is small"], a: 0, why: "The gap is the finding. Hiding or averaging it removes the result.", models: [null, "cherry-picking", "blurs the result", "small is still informative with an interval"] }],
+    trial: null, askHint: "" },
+
+  { id: "p-tsutsui", group: "paper", tier: "collab", short: "Tsutsui 2023", title: "WBC classification across datasets and BatchNorm", cite: "Tsutsui et al., ICASSP 2023", url: "https://arxiv.org/abs/2303.01777", strands: ["norm"], req: ["f-bn", "e-single"], cells: ["camera|layers", "stain|layers"], params: "0 (swap BN → GN)", target: "no",
+    piece: "In cross-dataset WBC classification, BatchNorm statistics drive much of the collapse. Replacing BN with GroupNorm restores a large part of it.",
+    eqHtml: "(x − μ<sub>S</sub>)/σ<sub>S</sub> applied to target x&nbsp;&nbsp;vs&nbsp;&nbsp;GN: (x − μ<sub>g</sub>(x))/σ<sub>g</sub>(x) per image, per channel group",
+    numbers: ["ResNet50, Raabin → LISC: 98.53% → 23.11% (chance is 20%).", "With GroupNorm: 73.07%. VGG16 without BN: 74.44%; with BN: about 33%.", "Best repaired model still recalls only 30.91% of basophils."],
+    readFor: ["Which datasets they train and test on, and why they rejected Raabin Test-B.", "Per-class results after the GN swap."],
+    link: "DM-FNet uses MobileNetV2, which is full of BN layers. In the paper the backbone is frozen, so those layers apply ImageNet statistics; 3-zone tuning re-estimates some of them on merged data. Your BN audit tests whether their finding holds for a 3.4M-parameter model.",
+    predict: { id: "p-tsutsui", stem: "Forecast: AdaBN (recomputed BN statistics) on the PBC-trained model, tested on Raabin. Macro-F1 goes from 0.556 to…", opts: ["0.75 or more", "0.60 to 0.75", "about the same", "worse"], a: -1, why: "Resolved by the BN audit trial. Either outcome is publishable: it measures how much of your drop lives in normalization statistics." },
+    checks: [
+      { id: "c-tsutsui-1", stem: "Why did VGG16 without BN transfer better than VGG16 with BN?", opts: ["No stored source statistics are applied to target activations", "VGG16 without BN has fewer parameters", "BN layers overfit the labels", "BN removes colour"], a: 0, why: "Without BN, nothing learned about the source distribution is imposed per channel at test time.", models: [null, "BN adds few parameters", "BN doesn't memorize labels", "BN acts on features, not colour directly"] },
+      { id: "c-tsutsui-2", stem: "Even with GroupNorm, basophil recall stayed at 30.91%. What does that suggest?", opts: ["Normalization layers explain part of the drop; something else remains (biology, stain as signal, prevalence)", "GroupNorm is broken", "Basophils cannot be classified", "More epochs would fix it"], a: 0, why: "A partial fix is a measurement: it tells you how much of the shift lives in one mechanism.", models: [null, "blames the tool", "over-generalizes", "time doesn't fix shift"] }],
+    trial: { title: "BatchNorm audit on DM-FNet", measure: "Raabin per-class F1: (a) as trained, (b) after AdaBN with unlabelled Raabin images. Label (b) as test-time adaptation.", code: "def all_layers(layer):\n    out = []\n    for l in getattr(layer, \"layers\", []):\n        out.append(l)\n        out += all_layers(l)\n    return out\n\nbns = [l for l in all_layers(model) if isinstance(l, tf.keras.layers.BatchNormalization)]\nprint(len(bns), \"BatchNorm layers\")\nfor l in bns[:3]:\n    print(l.name, \"trainable:\", l.trainable, l.moving_mean.numpy()[:3])\n# In Keras, a BN layer with trainable=False always runs in inference mode\n# (stored statistics). See the AdaBN node for the re-estimation code." },
+    askHint: "In your BN → GN experiments, did the remaining eosinophil and basophil errors cluster by stain protocol or by morphology? We see the same pattern on a 3.4M-parameter MobileNetV2 model and would like to compare." },
+
+  { id: "p-adabn", group: "paper", tier: "core", short: "AdaBN / Tent", title: "Re-estimating BN at test time: AdaBN and Tent", cite: "Li et al. 2016 (AdaBN); Wang et al., ICLR 2021 (Tent)", url: "https://arxiv.org/abs/1603.04779", url2: "https://arxiv.org/abs/2006.10726", strands: ["norm", "light"], req: ["p-tsutsui"], cells: ["camera|layers"], params: "0", target: "yes, unlabelled",
+    piece: "AdaBN replaces the stored BN statistics with statistics of the target domain. Tent also updates BN's γ and β by minimizing prediction entropy on test batches. Neither uses labels or adds parameters.",
+    eqHtml: "AdaBN: μ ← mean<sub>T</sub>(x), σ² ← var<sub>T</sub>(x) for each BN channel<br>Tent: min<sub>γ,β</sub> H(ŷ) = −Σ<sub>k</sub> p<sub>k</sub> log p<sub>k</sub>&nbsp;&nbsp;on test batches",
+    numbers: ["Your report warns that label-free adaptation under class-prior shift failed in the frozen-FM benchmark (arXiv 2608.25148)."],
+    readFor: ["AdaBN: the one-paragraph method.", "Tent: which parameters are updated, and the failure cases."],
+    link: "Zero parameters, so it fits your device goal: a new lab sends about 100 unlabelled cells and the model re-estimates its statistics. But it uses target images, so it is test-time adaptation, a separate row from DG.",
+    predict: { id: "p-adabn", stem: "Before reading: what does AdaBN need from the new lab?", opts: ["Unlabelled images only", "Labelled images", "A new model head", "Nothing at all"], a: 0, why: "Statistics need images, not labels." },
+    checks: [
+      { id: "c-adabn-1", stem: "A new lab's batch is 90% neutrophils. What risk does AdaBN or Tent face?", opts: ["The recomputed statistics and the entropy objective are dominated by neutrophils, which can pull rare classes toward the majority", "No risk: statistics are label-free", "It adds parameters", "It stops working on GPUs"], a: 0, why: "Label-free does not mean class-free. Batch composition shapes the statistics.", models: [null, "confuses label-free with prior-free", "it adds none", "irrelevant"] },
+      { id: "c-adabn-2", stem: "How do you label an AdaBN row in the proposal to Prof. Mitra?", opts: ["Test-time adaptation, reported separately from DG", "Domain generalization", "Supervised domain adaptation", "In-distribution"], a: 0, why: "Point 1 of her feedback asks you to name settings precisely. This is where it shows.", models: [null, "'no labels' = DG", "no labels are used", "the lab is new"], mode: "disc" }],
+    trial: { title: "AdaBN with a running average", measure: "Raabin per-class F1 before and after. Confirm moving_mean changed.", code: "def adabn(model, target_ds, n_batches=20):\n    bns = [l for l in all_layers(model) if isinstance(l, tf.keras.layers.BatchNormalization)]\n    saved = [(l.trainable, l.momentum) for l in bns]\n    for l in bns:\n        l.trainable = True                 # so training=True updates the moving statistics\n    for i, (x, _) in enumerate(target_ds.take(n_batches)):   # labels are NOT used\n        for l in bns:\n            l.momentum = i / (i + 1)       # exact running average over batches seen\n        model(x, training=True)            # forward pass only, no gradient step\n    for l, (t, m) in zip(bns, saved):\n        l.trainable, l.momentum = t, m\n\nbefore = bns[0].moving_mean.numpy()[:3].copy()\nadabn(model, raabin_unlabelled_ds)\nprint(before, bns[0].moving_mean.numpy()[:3])   # must differ" },
+    askHint: "" },
+
+  { id: "p-stainvec", group: "paper", tier: "context", short: "Stain vectors", title: "Measuring stain vectors: colour deconvolution and Macenko", cite: "Ruifrok & Johnston 2001; Macenko et al., ISBI 2009", url: "https://pubmed.ncbi.nlm.nih.gov/11531144/", strands: ["phys"], req: ["f-beer"], cells: ["stain|norm-in", "stain|measure"], params: "0", target: "no",
+    piece: "Stain vectors can be measured from the images themselves. Convert to OD, drop near-white pixels, project onto the plane of the top two eigenvectors, and take the extreme angles as the two stain vectors. Deconvolution then gives each pixel's stain amounts.",
+    eqHtml: "OD = A·S&nbsp;&nbsp;⇒&nbsp;&nbsp;A = OD·S<sup>+</sup>&nbsp;&nbsp;(S<sup>+</sup>: pseudo-inverse)",
+    numbers: ["skimage's rgb2hed uses fixed H&E/DAB vectors, not Giemsa or MGG."],
+    readFor: ["Macenko: the 5-step algorithm.", "Ruifrok: how a stain matrix is defined and inverted."],
+    link: "Workstream 2 of your deck: measure S for PBC, Raabin and your third source. That turns 'the stain is different' into an angle in degrees.",
+    predict: { id: "p-stainvec", stem: "Forecast: the angle between the purple (basic dye) stain vectors of PBC (MGG) and Raabin (Giemsa) will be…", opts: ["small, under 5°", "moderate, 5° to 15°", "large, over 15°"], a: -1, why: "Resolved by the measurement trial. Whatever it is, it is a number nobody has published for these two datasets." },
+    checks: [{ id: "c-stainvec-1", stem: "Why is skimage's rgb2hed a poor default for your smears?", opts: ["Its fixed vectors are for H&E and DAB, not Giemsa or MGG dyes", "It is too slow", "It works only on grayscale", "It needs labels"], a: 0, why: "Wrong vectors mean wrong stain amounts. Estimate S from your own images first.", models: [null, "speed isn't the issue", "it takes RGB", "it's unsupervised"] }],
+    trial: { title: "Measure stain vectors per dataset", measure: "Mean stain vectors over ~200 crops each for PBC, Raabin and source 3; angles between them in degrees.", code: "import numpy as np\ndef stain_vectors(rgb, beta=0.15, alpha=1):\n    od = -np.log((rgb.reshape(-1, 3).astype(float) + 1) / 256)\n    od = od[(od > beta).all(axis=1)]                # drop near-white pixels\n    _, vecs = np.linalg.eigh(np.cov(od.T))\n    plane = vecs[:, 1:3]                            # top-2 eigenvectors (eigh sorts ascending)\n    proj = od @ plane\n    phi = np.arctan2(proj[:, 1], proj[:, 0])\n    lo, hi = np.percentile(phi, [alpha, 100 - alpha])\n    v1 = plane @ np.array([np.cos(lo), np.sin(lo)])\n    v2 = plane @ np.array([np.cos(hi), np.sin(hi)])\n    return np.abs(v1) / np.linalg.norm(v1), np.abs(v2) / np.linalg.norm(v2)\n\ndef angle(a, b):\n    return np.degrees(np.arccos(np.clip(a @ b, -1, 1)))" },
+    askHint: "" },
+
+  { id: "p-tellez", group: "paper", tier: "core", short: "Tellez 2019", title: "Stain augmentation versus stain normalization", cite: "Tellez et al., Medical Image Analysis 2019", url: "https://arxiv.org/abs/1902.06543", strands: ["phys"], req: ["p-stainvec", "e-ladder"], cells: ["stain|aug", "camera|aug"], params: "0", target: "no",
+    piece: "On H&E tumour tasks from 9 labs, colour augmentation mattered more than stain normalization. The best setting used no normalization plus light HED augmentation.",
+    eqHtml: "HED jitter, per image and per stain channel c:&nbsp;&nbsp;a<sub>c</sub> ← a<sub>c</sub>·α<sub>c</sub> + β<sub>c</sub>,&nbsp;&nbsp;α ~ U(1−σ, 1+σ),&nbsp;&nbsp;β ~ U(−σ, σ)",
+    numbers: ["As cited in your report: classical normalizers did not beat grayscale in their setting."],
+    readFor: ["The augmentation families (basic, morphology, BC, HSV, HED).", "The table comparing normalization and augmentation per lab."],
+    link: "You normalize with Reinhard; TSOR augments in HED; Tellez says augment. For WBC the open question is whether colour augmentation teaches the model to ignore granule colour that it needs.",
+    predict: { id: "p-tellez", stem: "Before reading: in Tellez's study, which won?", opts: ["Colour augmentation beat classical normalization", "Normalization beat augmentation", "They tied", "Neither beat grayscale"], a: 0, why: "Augmentation won. Your report adds that normalizers did not beat grayscale." },
+    checks: [
+      { id: "c-tellez-1", stem: "Why might augmentation preserve diagnostic colour better than Reinhard?", opts: ["Augmentation perturbs colour around each image's true values, so relative differences between cells survive; Reinhard computes statistics over each crop, mixing cell content with the lab's cast", "Augmentation removes colour", "Reinhard adds noise", "Augmentation uses more images"], a: 0, why: "This is the mechanism behind your point-4 answer.", models: [null, "it keeps colour", "Reinhard is deterministic", "same images, different views"] },
+      { id: "c-tellez-2", stem: "Does H&E evidence transfer directly to Giemsa smears?", opts: ["Not automatically: the dyes, the structures and the role of colour differ, so it needs your own test", "Yes, all stains behave alike", "No, smears have no stain", "Only for basophils"], a: 0, why: "Say 'we test whether this holds for Romanowsky stains' rather than assuming it.", models: [null, "over-generalizes", "factually wrong", "arbitrary"] }],
+    trial: { title: "Reinhard vs HED jitter vs neither", measure: "Same LODO protocol, 3 seeds; per-class F1, especially eosinophil and basophil.", code: "import numpy as np\nfrom skimage.color import rgb2hed, hed2rgb\ndef hed_jitter(img, sigma=0.05, rng=np.random):\n    hed = rgb2hed(img)        # H&E/DAB vectors: a rough proxy for Giemsa, note this in the paper\n    a = rng.uniform(1 - sigma, 1 + sigma, 3)\n    b = rng.uniform(-sigma, sigma, 3)\n    return np.clip(hed2rgb(hed * a + b), 0, 1)\n# Compare (a) Reinhard, (b) hed_jitter in training, (c) neither." },
+    askHint: "" },
+
+  { id: "p-beerlanet", group: "paper", tier: "collab", short: "BeerLaNet", title: "BeerLaNet: trainable Beer–Lambert stain normalization", cite: "Xu, …, Haeffele, MICCAI 2025", url: "https://arxiv.org/abs/2510.06592", strands: ["phys", "light"], req: ["p-stainvec"], cells: ["stain|norm-in"], params: "small (unrolled layers)", target: "no",
+    piece: "A stain normalizer derived from the Beer–Lambert law by unrolling non-negative matrix factorization into network layers, trained end-to-end with the classifier. Evaluated on pathology and on malaria blood smears; code is public.",
+    eqHtml: "OD ≈ A·S,&nbsp;&nbsp;A, S ≥ 0&nbsp;&nbsp;solved by K unrolled NMF updates, each update one network layer",
+    numbers: ["Check the paper for parameter count and the malaria smear results."],
+    readFor: ["How the NMF updates are unrolled.", "The malaria smear experiment (closest to your data)."],
+    link: "This is the closest published method to your RBC-anchor idea: estimate S per image. Your twist is to estimate S from red cells and background, which every smear has and whose colour does not depend on which leukocyte is in the crop.",
+    predict: { id: "p-beerlanet", stem: "Before reading: what does 'unrolled NMF' mean?", opts: ["Each NMF update step becomes a network layer, so the factorization is learned end-to-end", "NMF is replaced by a CNN", "The stain matrix is fixed in advance", "NMF runs only during training"], a: 0, why: "Unrolling turns an iterative algorithm into a fixed-depth, differentiable network." },
+    checks: [{ id: "c-beerlanet-1", stem: "How would an RBC-anchored estimate differ from estimating S over the whole crop?", opts: ["Red cells are in every smear and their colour is set by acquisition, not by which leukocyte is present, so S estimated from them does not absorb the leukocyte's own colour", "It is faster", "It removes red cells from the image", "It needs labels"], a: 0, why: "This is the precise answer to 'how do you separate acquisition from task features' for blood smears.", models: [null, "speed isn't the point", "they stay in the image", "it's label-free"] }],
+    trial: { title: "Run BeerLaNet on PBC → Raabin", measure: "Per-class F1 with the DM-FNet head, same protocol as your ERM baseline.", code: "# 1. Clone the authors' public code (link in the paper).\n# 2. Replace their backbone with DM-FNet, or put BeerLaNet in front of DM-FNet's input.\n# 3. Train on PBC, select on PBC validation, test once on Raabin.\n# 4. Record per-class F1 next to ERM and Reinhard." },
+    askHint: "Has BeerLaNet been tested on leukocyte classes defined by granule colour, such as eosinophils and basophils? Would anchoring the stain estimate on red-cell and background pixels fit your unrolled formulation?" },
+
+  { id: "p-sada", group: "paper", tier: "collab", short: "SADA 2024", title: "SADA: stain-aware domain alignment for WBC", cite: "SADA, arXiv 2412.02976 (2024)", url: "https://arxiv.org/abs/2412.02976", strands: ["phys", "dg"], req: ["p-stainvec", "p-castro"], cells: ["stain|align"], params: "0 at inference (training-time)", target: "no",
+    piece: "Stain-based augmentation that swaps Beer–Lambert stain matrices across clusters, plus local alignment, for imbalanced multi-domain WBC classification. Leave-one-domain-out over four WBC datasets. Code is public.",
+    eqHtml: "OD = A·S<sub>i</sub>&nbsp;&nbsp;→&nbsp;&nbsp;A·S<sub>j</sub>&nbsp;&nbsp;(swap the stain matrix, keep the amounts), then align features across domains",
+    numbers: ["LODO average macro-F1: ERM 63.2, SADA 68.6.", "Datasets include Acevedo (MGG), Raabin (Giemsa), LDWBC and SYSU3H (Wright-Giemsa)."],
+    readFor: ["Exactly how stain matrices are estimated and swapped.", "Per-class results, especially eosinophil and basophil."],
+    link: "Your most direct competitor. SADA makes the model ignore stain. Your question is which part of stain is nuisance and which part is signal, measured per class.",
+    predict: { id: "p-sada", stem: "Guess: SADA's LODO gain over ERM is about…", opts: ["5 macro-F1 points (63.2 → 68.6)", "20 points", "0.5 points", "40 points"], a: 0, why: "Real but modest, which is typical for DG under fair protocols." },
+    checks: [
+      { id: "c-sada-1", stem: "Why does swapping stain matrices assume the stain carries no class information?", opts: ["It trains the model to give the same label under any stain matrix, so any class cue in the stain is removed by design", "It assumes nothing", "It only changes brightness", "It needs class labels per stain"], a: 0, why: "Invariance is a choice. If granule hue is part of the class, invariance to it costs accuracy on that class.", models: [null, "every augmentation encodes an assumption", "it changes hue", "it's label-agnostic"] },
+      { id: "c-sada-2", stem: "Which sentence states how your question differs from SADA's?", opts: ["SADA makes the model ignore stain; I ask which part of stain is nuisance and which is signal, and measure it per class", "I use a different backbone", "I use more datasets", "I use a bigger model"], a: 0, why: "A difference in question beats a difference in setup.", models: [null, "setup, not question", "setup, not question", "against your own goal"] }],
+    trial: { title: "Reproduce SADA's ERM, then add per-class colour checks", measure: "Their ERM number on their split; then eosinophil and basophil recall with and without stain swapping.", code: "# 1. Clone SADA's public code; reproduce their ERM LODO number first.\n# 2. Add your PBC/Raabin/source-3 split as extra domains.\n# 3. Log per-class recall with and without the stain-matrix swap." },
+    askHint: "In SADA, which classes gained least from stain swapping? Did eosinophil or basophil recall drop when stain matrices were swapped across clusters?" },
+
+  { id: "p-umer", group: "paper", tier: "collab", short: "Umer 2023", title: "Multi-source WBC classification to an unseen lab", cite: "Umer et al., arXiv 2303.07771 (2023)", url: "https://arxiv.org/abs/2303.07771", strands: ["dg", "eval"], req: ["p-domainbed"], cells: ["manif|measure", "stain|align"], params: "varies", target: "no",
+    piece: "Train on Matek + Acevedo, test on an unseen Munich lab with 13 harmonized classes. ERM reaches macro-F1 0.40 against 0.77 in-domain; DANN, CORAL and related methods reach 0.35–0.46.",
+    eqHtml: "Multi-source DG: train on {D<sub>1</sub>, D<sub>2</sub>}, test on unseen D<sub>3</sub>, macro-F1 over 13 harmonized classes",
+    numbers: ["ERM 0.40 vs 0.77 in-domain; alignment methods 0.35–0.46."],
+    readFor: ["How classes were harmonized across datasets.", "Which classes fail on the unseen lab."],
+    link: "The multi-source version of your story, at finer class granularity. Their class harmonization is a template for a public WBC-DG benchmark.",
+    predict: { id: "p-umer", stem: "Guess: multi-source ERM to an unseen lab with 13 classes reaches macro-F1 of about…", opts: ["0.40", "0.75", "0.90", "0.10"], a: 0, why: "0.40. Fine-grained classes make the shift much worse than your 5-class case." },
+    checks: [{ id: "c-umer-1", stem: "Which change to their protocol would you make first?", opts: ["More held-out domains (leave-one-out) and several seeds, so one lab doesn't decide the result", "Use accuracy instead of macro-F1", "Use fewer classes", "Train on the test lab"], a: 0, why: "One unseen lab is one sample of 'new lab'.", models: [null, "hides minority failure", "dodges the problem", "turns DG into in-domain"] }],
+    trial: { title: "Class map and licence table", measure: "A table: dataset, classes, mapping to 5 core classes, licence, acquisition device.", code: "# Build the harmonization table for PBC, Raabin, Matek, Bodzas, LISC.\n# Mark each licence as found on the primary page, or 'unknown'." },
+    askHint: "How did you decide the class harmonization between Matek and Acevedo, and which classes failed most on the unseen Munich lab? Would a public leave-one-dataset-out benchmark over the open WBC sets be useful to your group?" },
+
+  { id: "p-jahanifar", group: "paper", tier: "core", short: "Jahanifar 2023", title: "Domain generalization in computational pathology", cite: "Jahanifar et al., arXiv 2310.19656 (2023)", url: "https://arxiv.org/abs/2310.19656", strands: ["eval", "phys"], req: ["p-domainbed", "p-tellez", "p-castro"], cells: ["stain|aug", "manif|measure"], params: "protocol", target: "no",
+    piece: "A survey and benchmark of 28 DomainBed algorithms on MIDOG22 patches. Plain stain augmentation was best. It defines class-conditional shift and gives a reporting guideline.",
+    eqHtml: "Class-conditional shift: P<sub>S</sub>(x | y=k) ≠ P<sub>T</sub>(x | y=k) for some k only<br>MMD²(P, Q) = E[k(x,x')] + E[k(y,y')] − 2·E[k(x,y)]",
+    numbers: ["Stain augmentation F1 76.0 vs ERM 74.7 on MIDOG22 patches (as cited in your report)."],
+    readFor: ["The definitions section (shift taxonomy).", "The guideline: validation from all training domains, case-wise splits."],
+    link: "'Eosinophils shifted while neutrophils did not' is class-conditional shift. Test it on DM-FNet embeddings, class by class.",
+    predict: { id: "p-jahanifar", stem: "Guess: out of 28 DG algorithms on MIDOG22, what won?", opts: ["Plain stain augmentation", "A complex adversarial method", "A foundation model", "IRM"], a: 0, why: "Simple augmentation won. Another reason your baseline must include it." },
+    checks: [
+      { id: "c-jahanifar-1", stem: "Is your eosinophil collapse an example of class-conditional shift?", opts: ["Yes: the eosinophil class distribution moved more than the neutrophil one", "No, it is prevalence shift", "No, it is label noise", "It can't be: shift is always global"], a: 0, why: "Different classes moved by different amounts. That is the definition.", models: [null, "frequency, not appearance", "no evidence", "shift can be per class"], mode: "disc" },
+      { id: "c-jahanifar-2", stem: "Which item belongs in their reporting guideline?", opts: ["Case- or slide-level splits and validation drawn from the training domains", "Random image-level splits", "Selecting checkpoints on the test domain", "Reporting accuracy only"], a: 0, why: "Exactly the gaps in your merged-split result.", models: [null, "leaks", "oracle", "hides class failure"] }],
+    trial: { title: "Per-class MMD between PBC and Raabin embeddings", measure: "MMD per class; permutation p-value with ~200 shuffles.", code: "import numpy as np\ndef mmd_rbf(X, Y, gamma=None):\n    Z = np.vstack([X, Y])\n    d = ((Z[:, None] - Z[None]) ** 2).sum(-1)\n    gamma = gamma or 1.0 / np.median(d[d > 0])\n    K = np.exp(-gamma * d); n = len(X)\n    return K[:n, :n].mean() + K[n:, n:].mean() - 2 * K[:n, n:].mean()\n\nemb = tf.keras.Model(model.input, model.get_layer(\"gap\").output)   # use your GAP layer's name\nfor k, name in enumerate(CLASSES):\n    Xs = emb.predict(pbc_x[pbc_y == k][:200])\n    Xt = emb.predict(raabin_x[raabin_y == k][:200])\n    print(name, round(mmd_rbf(Xs, Xt), 4))" },
+    askHint: "" },
+
+  { id: "p-mixstyle", group: "paper", tier: "core", short: "MixStyle", title: "Domain generalization with MixStyle", cite: "Zhou et al., ICLR 2021", url: "https://arxiv.org/abs/2104.02008", strands: ["norm", "light"], req: ["f-bn"], cells: ["camera|mix", "stain|mix"], params: "0", target: "no",
+    piece: "Image style lives in early feature statistics (per-channel mean and standard deviation). Mixing those statistics between training images at random simulates new domains. No parameters; active only in training.",
+    eqHtml: "γ<sub>mix</sub> = λσ(x) + (1−λ)σ(x̃),&nbsp;&nbsp;β<sub>mix</sub> = λμ(x) + (1−λ)μ(x̃)<br>out = γ<sub>mix</sub>·(x − μ(x))/σ(x) + β<sub>mix</sub>,&nbsp;&nbsp;λ ~ Beta(0.1, 0.1)",
+    numbers: ["Inserted after early blocks only; applied with probability 0.5."],
+    readFor: ["Why statistics encode style.", "The ablation on where to insert it."],
+    link: "It fits your parameter budget exactly. Insert after the block_3 and block_6 feature taps of MobileNetV2.",
+    predict: { id: "p-mixstyle", stem: "Forecast: MixStyle after block_3 and block_6, trained on PBC only, tested on Raabin. Macro-F1 compared with 0.556…", opts: ["a clear gain, more than 0.10", "a small gain, under 0.10", "no change or worse"], a: -1, why: "Resolved by the trial. Watch eosinophil and basophil separately." },
+    checks: [
+      { id: "c-mixstyle-1", stem: "Why is MixStyle applied only in early layers?", opts: ["Early statistics encode style (colour, texture); deep statistics carry class meaning, which mixing would corrupt", "Deep layers have no statistics", "It is faster", "It adds parameters in deep layers"], a: 0, why: "The same logic as BN statistics: early channels respond to colour and texture.", models: [null, "every layer has statistics", "speed isn't the reason", "it never adds parameters"] },
+      { id: "c-mixstyle-2", stem: "Which risk is specific to WBC?", opts: ["If early colour statistics carry granule information, mixing may blur eosinophil and basophil cues, so measure per class", "None", "It increases parameters", "It needs target data"], a: 0, why: "The same signal-versus-nuisance question, at feature level.", models: [null, "ignores your point-4 problem", "it doesn't", "it doesn't"] }],
+    trial: { title: "MixStyle layer for DM-FNet", measure: "PBC-only training, Raabin test; per-class F1 vs ERM, 3 seeds.", code: "class MixStyle(tf.keras.layers.Layer):\n    \"\"\"Zero-parameter style mixing (Zhou et al., ICLR 2021). Active only in training.\"\"\"\n    def __init__(self, p=0.5, alpha=0.1, eps=1e-6, **kw):\n        super().__init__(**kw)\n        self.p, self.alpha, self.eps = p, alpha, eps\n\n    def call(self, x, training=None):\n        if not training:\n            return x\n        mu = tf.stop_gradient(tf.reduce_mean(x, axis=[1, 2], keepdims=True))\n        sig = tf.stop_gradient(tf.sqrt(tf.math.reduce_variance(x, axis=[1, 2], keepdims=True) + self.eps))\n        b = tf.shape(x)[0]\n        g1 = tf.random.gamma([b, 1, 1, 1], self.alpha)\n        g2 = tf.random.gamma([b, 1, 1, 1], self.alpha)\n        lam = g1 / (g1 + g2 + 1e-12)                       # lam ~ Beta(alpha, alpha)\n        perm = tf.random.shuffle(tf.range(b))\n        mu_mix = lam * mu + (1 - lam) * tf.gather(mu, perm)\n        sig_mix = lam * sig + (1 - lam) * tf.gather(sig, perm)\n        out = (x - mu) / sig * sig_mix + mu_mix\n        use = tf.cast(tf.random.uniform([]) < self.p, x.dtype)   # apply with probability p\n        return use * out + (1 - use) * x" },
+    askHint: "" },
+
+  { id: "p-tsor", group: "paper", tier: "collab", short: "TSOR", title: "TSOR: prostate ISUP grading across centres", cite: "Bhattacharya, Mitra et al., Machine Intelligence Unit, ISI Kolkata", url: "", strands: ["eval", "phys"], req: ["p-tellez", "f-acc", "e-ood"], cells: ["stain|align", "label|measure"], params: "0 at inference (training losses)", target: "no",
+    piece: "ISUP grading of prostate WSIs as multiple-instance learning: task-specific self-supervised learning, a stain-agnostic consistency term built on HED augmentation (λ·L_aug2), and ordinal regression. Trained on PANDA, tested on the external SICAP centre.",
+    eqHtml: "Kappa gap PANDA → SICAP:&nbsp;&nbsp;0.104 (no SSL, no OR) → 0.041 (+OR) → 0.009 (+task SSL) → 0.011 (+stain-agnostic)",
+    numbers: ["Quadratic kappa 0.8843 (PANDA) and 0.8736 (SICAP) for the full model.", "Your analysis of Fig. 6: exact 6-class accuracy 0.666 → 0.561; benign (ISUP 0) recall 0.86 → 0.44, with 20 of 36 SICAP benign slides graded as cancer.", "Their feedback: kappa is the primary metric because labels have high inter-observer variability."],
+    readFor: ["How the stain-agnostic term is built and how λ was chosen.", "The confusion matrices in Fig. 6."],
+    link: "The same structure as your failure: the aggregate metric looks stable while specific classes shift. Their open question (stain or other centre differences?) is your open question. This is the paper your proposal to Prof. Mitra is built around.",
+    predict: { id: "p-tsor", stem: "Before re-reading: which component closed most of TSOR's PANDA → SICAP kappa gap?", opts: ["Ordinal regression plus task-specific SSL (0.104 → 0.009)", "The stain-agnostic term", "More training data", "A bigger backbone"], a: 0, why: "From Table 3: the stain-agnostic term lifts both centres by about 0.013 and leaves the gap unchanged." },
+    checks: [
+      { id: "c-tsor-1", stem: "Prof. Mitra's group noted that kappa is preferred over accuracy for ISUP grading. Why?", opts: ["Grades are ordinal and labels vary between pathologists; quadratic kappa credits near-misses and corrects for chance agreement", "Kappa is always higher", "Accuracy cannot be computed for WSIs", "Kappa needs fewer slides"], a: 0, why: "Acknowledge this point in one clause when you write to them.", models: [null, "not a reason", "it can", "not true"] },
+      { id: "c-tsor-2", stem: "Which question best shows you are working on the same problem, without asking them to redo their work?", opts: ["How much of the remaining SICAP gap is stain versus magnification or preparation, and could we run one shared decomposition protocol on both problems?", "Can you send us your code?", "Why didn't you use accuracy?", "Can you switch to WBC?"], a: 0, why: "It offers work from your side and connects their open question to yours.", models: [null, "asks without offering", "already answered by them", "they already declined a joint WBC+prostate start"] }],
+    trial: { title: "Shared decomposition protocol", measure: "A one-page protocol both groups could run: per-dataset stain vectors, sharpness and resolution, prevalence, and one-shift-at-a-time injection.", code: "# Your side (WBC): stain vectors (p-stainvec), optics injection (e-ood), prior reweighting (p-castro).\n# Their side (prostate): the same three measurements on PANDA vs SICAP patches.\n# Deliverable: one table with rows = shift component, columns = dataset pair." },
+    askHint: "How much of the remaining PANDA → SICAP gap comes from staining, and how much from magnification (SICAP 10× → 5×) or tissue preparation? We could share one decomposition protocol that measures each component on both problems." },
+
+  { id: "p-gustafsson", group: "paper", tier: "context", short: "Gustafsson 2024", title: "Foundation-model features for ISUP grading across centres", cite: "Gustafsson & Rantalainen, 2024", url: "", strands: ["light", "why"], req: ["p-shortcut"], cells: ["stain|scale", "optics|scale"], params: "large (UNI, CONCH)", target: "no",
+    piece: "UNI (trained on over 100,000 slides) and CONCH as feature extractors for ISUP grading, trained on Radboud and tested on Karolinska. Scale alone did not guarantee robustness.",
+    eqHtml: "frozen foundation-model features → aggregator → ISUP grade; external-centre drop measured",
+    numbers: ["As summarized on slide 13 of your deck."],
+    readFor: ["The external-centre results table."],
+    link: "Good news for your parameter-budget goal: robustness has to come from the right mechanism, not from size.",
+    predict: { id: "p-gustafsson", stem: "Before reading: does a 100,000-slide foundation model guarantee cross-centre robustness?", opts: ["No: scale alone did not in their study", "Yes", "Only for H&E", "Only above 1B parameters"], a: 0, why: "Scale did not guarantee robustness." },
+    checks: [{ id: "c-gustafsson-1", stem: "What does this mean for your goal?", opts: ["Robustness has to come from the right mechanism, not size, which leaves room for a 3.4M-parameter model", "You must use a foundation model", "Small models can never generalize", "Size and robustness are the same thing"], a: 0, why: "It is the argument for your whole programme.", models: [null, "contradicts the finding", "over-generalizes", "the finding says otherwise"] }],
+    trial: null, askHint: "" },
+
+  { id: "p-dinobloom", group: "paper", tier: "context", short: "DinoBloom", title: "Hematology foundation models under shift", cite: "Koch et al. 2024 (DinoBloom); frozen-FM benchmark, arXiv 2608.25148", url: "https://arxiv.org/abs/2404.05022", url2: "https://arxiv.org/abs/2608.25148", strands: ["light"], req: ["p-gustafsson"], cells: ["stain|scale"], params: "DinoBloom-S 22M", target: "no",
+    piece: "DinoBloom: DINOv2-style encoders trained on hematology images. The benchmark: 15 frozen encoders lose 34–72% macro-F1 across datasets; DinoBloom-L is best in-domain but 10th of 15 on MLL23, and calibration error rises from 0.004 to 0.35.",
+    eqHtml: "ECE = Σ<sub>b</sub> (n<sub>b</sub>/N)·| acc(b) − conf(b) |&nbsp;&nbsp;over confidence bins b",
+    numbers: ["DinoBloom pretraining includes Raabin (10,175 images) and holds out Acevedo (as cited in your report)."],
+    readFor: ["DinoBloom: pretraining data list.", "Benchmark: the cross-dataset table and the calibration figure."],
+    link: "Your comparison row: DM-FNet at 3.4M parameters against a DinoBloom-S linear probe at 22M. Raabin is not an unseen domain for DinoBloom, so test it on a source outside its pretraining.",
+    predict: { id: "p-dinobloom", stem: "Before reading: is Raabin a fair unseen test domain for DinoBloom?", opts: ["No: Raabin images were in its pretraining", "Yes", "Only if the encoder is frozen", "Only for basophils"], a: 0, why: "Pretraining overlap makes Raabin partly in-distribution for it." },
+    checks: [{ id: "c-dinobloom-1", stem: "Calibration error rising from 0.004 to 0.35 means…", opts: ["The model's confidence stops matching its accuracy on new data, which is dangerous for a device that must abstain", "Accuracy rose", "The model became smaller", "Nothing important"], a: 0, why: "A device decides when to hand a cell to the technologist by confidence. Broken calibration breaks that.", models: [null, "unrelated", "unrelated", "ignores deployment"] }],
+    trial: null, askHint: "" },
+
+  { id: "p-wbcbench", group: "paper", tier: "collab", short: "WBCBench", title: "WBCBench 2026 (ISBI challenge)", cite: "WBCBench 2026, arXiv 2604.10797", url: "https://arxiv.org/abs/2604.10797", strands: ["eval", "phys"], req: ["e-ood"], cells: ["optics|measure"], params: "benchmark", target: "no",
+    piece: "A WBC classification challenge under domain shift with long-tailed classes. Per your report, the shift is synthetic (noise, blur, illumination) applied to single-site images.",
+    eqHtml: "x<sub>test</sub> = corrupt(x<sub>site</sub>; noise, blur, illumination)",
+    numbers: ["Check the challenge page for current tracks and submission status."],
+    readFor: ["How the corruptions are generated.", "The class distribution."],
+    link: "Synthetic optics shift isolates exactly the component your 61% result points to. But it is not real lab shift, and that difference is your gap.",
+    predict: { id: "p-wbcbench", stem: "Before reading: WBCBench's shift is…", opts: ["Synthetic (noise, blur, illumination) on single-site images", "Real multi-lab", "Stain protocol only", "There is no shift"], a: 0, why: "As described in your report." },
+    checks: [{ id: "c-wbcbench-1", stem: "How can you use WBCBench without overclaiming?", opts: ["As a controlled test of optics robustness, reported separately from real cross-lab results", "As proof of real-world generalization", "As your only benchmark", "Not at all"], a: 0, why: "Controlled and real shifts answer different questions. Report both.", models: [null, "overclaims", "too narrow", "wastes a useful control"] }],
+    trial: null,
+    askHint: "Would a real multi-lab track, leave-one-dataset-out over the public WBC sets, be welcome in a future edition? We are building that split and could contribute it." },
+
+  { id: "p-midog", group: "paper", tier: "later", short: "MIDOG 2025", title: "MIDOG 2025 Track 2: atypical mitosis", cite: "MIDOG 2025 report, arXiv 2606.07368", url: "https://arxiv.org/abs/2606.07368", strands: ["dg", "eval"], req: ["p-jahanifar"], cells: ["manif|measure"], params: "benchmark", target: "no",
+    piece: "Atypical versus normal mitosis on 128×128 patches across 7 domains (tumour types, species, scanners). A defined protocol with out-of-domain test sets. The training set is CC BY-NC 4.0.",
+    eqHtml: "Balanced accuracy = ½·(recall<sub>atypical</sub> + recall<sub>normal</sub>)",
+    numbers: ["Hidden test BA from 0.671 to 0.908; baseline 0.827.", "AMi-Br: BA 0.806 with a patch-level split vs 0.713 with a patient-level split.", "Label agreement: κ 0.68 (Track 2) vs 0.48 (Track 1)."],
+    readFor: ["The Track 2 protocol and domains.", "The AMi-Br split comparison."],
+    link: "Prof. Mitra's point 2: a later bridge into histopathology. Use it to test whether your mechanism transfers to a second stain chemistry, after the WBC work.",
+    predict: { id: "p-midog", stem: "Guess: why does AMi-Br drop from 0.806 to 0.713 when you split by patient instead of by patch?", opts: ["Patch-level splits leak patient-specific appearance into the test", "Patients have fewer images", "Balanced accuracy is unstable", "The model is smaller"], a: 0, why: "The same leak as your Raabin smears." },
+    checks: [{ id: "c-midog-1", stem: "Why Track 2 rather than Track 1 as the bridge?", opts: ["It is patch classification like DM-FNet, small (about 0.4 GB), with higher label agreement (κ 0.68 vs 0.48)", "It is larger", "It has no domain shift", "It is about white blood cells"], a: 0, why: "Cheap, close to your pipeline, and less capped by label noise.", models: [null, "Track 1 is larger", "it is a DG benchmark", "it isn't"] }],
+    trial: null, askHint: "" },
+
+  /* ---------- Outputs ---------- */
+  { id: "o-tldr", group: "out", short: "Field TL;DR", title: "The field TL;DR", req: ["p-castro", "p-domainbed", "p-tsutsui", "p-jahanifar"], strands: [] },
+  { id: "o-mitra", group: "out", short: "Prof. Mitra", title: "Proposal to Prof. Mitra's group", req: ["o-tldr", "p-tsor"], strands: [] },
+  { id: "o-pitch", group: "out", short: "Author pitches", title: "Pitches to other authors", req: ["o-tldr"], strands: [] }
+];
+
+/* Puzzle Matrix: rows = what shifts, columns = which mechanism handles it. */
+var MX_ROWS = [
+  { id: "stain", name: "Stain chemistry", sub: "S in OD space · P(x|y)" },
+  { id: "camera", name: "Illumination and camera colour", sub: "white balance, sensor · P(x|y)" },
+  { id: "optics", name: "Optics and resolution", sub: "blur, magnification, noise · P(x|y)" },
+  { id: "prev", name: "Class prevalence", sub: "P(y)" },
+  { id: "manif", name: "Manifestation and patients", sub: "biology · P(x|y)" },
+  { id: "label", name: "Labels and annotation", sub: "P(y|x)" }
+];
+var MX_COLS = [
+  { id: "norm-in", name: "Normalize input", cost: "0 to small" },
+  { id: "aug", name: "Augment input", cost: "0" },
+  { id: "layers", name: "Normalization layers", cost: "0" },
+  { id: "mix", name: "Feature-statistics mixing", cost: "0" },
+  { id: "align", name: "Alignment and consistency losses", cost: "0 at inference" },
+  { id: "scale", name: "Pretraining scale", cost: "20M–300M+" },
+  { id: "measure", name: "Measure and protocol", cost: "0" }
+];
+/* Your own experiments placed in cells. */
+var MX_MINE = { "stain|norm-in": ["e-ladder"], "camera|norm-in": ["e-ladder"], "prev|measure": ["e-single"], "optics|measure": ["e-ood"], "stain|measure": ["e-single"] };
+/* Cells pre-marked as open gaps (your opportunities); you can change these. */
+var MX_GAPS = { "stain|measure": "Nobody has measured stain vectors across the public WBC sets, or shown normalization removing eosinophil/basophil signal.", "optics|aug": "Blur and resolution augmentation for WBC under real lab shift is untested.", "optics|measure": "Your 61% result points here; real cross-lab optics shift is unmeasured.", "stain|norm-in": "RBC-anchored stain estimation per image (novelty unverified: search first)." };
+
+/* Prof. Mitra's five points (verbatim from the feedback PDF, shortened only where marked). */
+var POINTS = [
+  { id: "m1", n: 1, q: "There are different types of domain generalization based on the scope of the task … two categories depending on the training configuration: single-source and multi-source … a related category called Domain Adaptation. We strongly recommend you to go through these categories first and then clarify your intended setting.", nodes: ["e-single", "e-ood", "p-adabn", "p-umer", "p-domainbed"], hint: "Single-modality, multi-dataset DG for one task. Main track: multi-source leave-one-dataset-out. Second track: single-source PBC → all others. Anything that uses target images (AdaBN, ~100-cell calibration) is reported separately as domain adaptation. Her six scope labels did not appear verbatim in the surveys your report checked, so it is fair to ask which source she uses." },
+  { id: "m2", n: 2, q: "If you are still interested in histopathology, you can explore mitotic figure detection later … MIDOG, MIDOG++, MIDOG2025 … frame-based, thereby requiring comparatively less memory and time than entire WSI processing.", nodes: ["p-midog"], hint: "Future work, one paragraph. Track 2 (atypical vs normal, patches) is the natural bridge because it is classification. Its data is CC BY-NC: fine for papers, not for a product." },
+  { id: "m3", n: 3, q: "Decide if your objective is to learn representations robust to acquisition-related variations, or to develop a shared methodology for generalizing across different microscopy tasks.", nodes: ["p-tsor", "p-midog", "p-mixstyle"], hint: "Objective: acquisition-robust representations for blood-smear leukocyte classification under a parameter budget. A shared methodology becomes a later, explicitly labelled hypothesis tested on MIDOG Track 2 and on PANDA → SICAP through the shared decomposition protocol." },
+  { id: "m4", n: 4, q: "Staining and image appearance can also contain diagnostically relevant information. How would the proposed normalization or generalization strategy distinguish unwanted acquisition variations from important task-related features? Will your model be independent of image modality?", nodes: ["f-beer", "p-castro", "p-tellez", "p-beerlanet", "p-sada", "e-ood"], hint: "Granule colour defines eosinophils and basophils. Separate the absolute stain cast of the image (acquisition: S, camera) from relative stain amounts inside the cell (biology: A). Estimate the cast from red cells and background, which every smear has. Validate with a check that per-class information survives. Also report that after colour matching your failure moved to lymphocytes and monocytes, pointing at optics, a second acquisition component. Modality: no claim of independence; the scope is absorption-stained brightfield microscopy. If you may patent the anchor mechanism, describe it at concept level until Prof. Ari advises." },
+  { id: "m5", n: 5, q: "Read papers to properly understand the evaluation protocol for domain generalization.", nodes: ["p-domainbed", "p-wilds", "p-jahanifar", "f-test", "f-acc"], hint: "Leave-one-dataset-out plus a single-source track; split by smear or patient; checkpoint chosen on training-domain validation (oracle only as an upper bound); ERM with strong stain augmentation as the baseline; at least 3 seeds, mean ± SD; macro-F1, per-class recall, worst-class and worst-domain scores, calibration (ECE)." }
+];
+
+/* Whiteboard derivations for practice: composition mode, with a hint ladder R0–R5. */
+var BOARD = [
+  { id: "w-acc", node: "f-acc", task: "Show that accuracy = Σk πk · recallk.", rungs: ["Re-read: accuracy is a count divided by N.", "Split the correct predictions by their true class.", "The correct ones in class k number recallk × Nk.", "Write πk = Nk / N.", "Acc = Σk Nk·recallk / N.", "Acc = (1/N) Σk Nk·recallk = Σk (Nk/N)·recallk = Σk πk·recallk."], answer: "Acc = (#correct)/N = Σk (#correct in class k)/N = Σk recallk·Nk/N = Σk πk·recallk." },
+  { id: "w-bn", node: "f-bn", task: "Derive what a source-trained BN layer outputs on a target activation.", rungs: ["What statistics does BN use at inference?", "Write a target activation in terms of its own mean and std.", "x = μT + σT·zT.", "Substitute into (x − μS)/σS.", "(μT + σT·zT − μS)/σS.", "= (σT/σS)·zT + (μT − μS)/σS: a per-channel scale and shift error."], answer: "(x − μS)/σS with x = μT + σT·zT gives (σT/σS)·zT + (μT − μS)/σS." },
+  { id: "w-reinhard", node: "e-ladder", task: "Show Reinhard's output is unchanged if every pixel's channel value x becomes a·x + b (a > 0).", rungs: ["Write Reinhard for one channel.", "What happens to the mean and std under x → ax + b?", "Mean becomes aμ + b; std becomes aσ.", "Compute the z-score of a·x + b.", "(ax + b − aμ − b)/(aσ) = (x − μ)/σ.", "The z-score is unchanged, so output = z·σt + μt is unchanged."], answer: "z' = (ax + b − (aμ + b))/(aσ) = (x − μ)/σ = z, so the output is identical. Note: the statistics are per crop, so the cell's own colour also enters μ and σ." },
+  { id: "w-od", node: "f-beer", task: "From I = I₀·exp(−A·S), show OD is linear in the stain amounts.", rungs: ["Divide by I₀.", "Take the natural log.", "log(I/I₀) = −A·S.", "Define OD = −log(I/I₀).", "OD = A·S.", "Each dye adds its own amount times its own vector: linear in A."], answer: "I/I₀ = exp(−A·S) ⇒ −log(I/I₀) = A·S = Σd ad·sd." },
+  { id: "w-bound", node: "f-bound", task: "Name each term of the Ben-David bound and say which one stain normalization can shrink for PBC → Raabin.", rungs: ["Write the bound.", "εT(h) ≤ εS(h) + ½dHΔH + λ.", "εS: error on PBC.", "dHΔH: how well the hypothesis class can tell PBC from Raabin.", "λ: error of the best single classifier on both.", "Normalization shrinks dHΔH; λ stays large if cells really differ (e.g. CML basophils)."], answer: "εS = source error; ½dHΔH = domain divergence (normalization targets this); λ = best joint error (biology; untouched by normalization)." },
+  { id: "w-ci", node: "e-ood", task: "Compute an approximate 95% interval for 61 correct out of 100.", rungs: ["Use the normal approximation.", "SE = √(p(1−p)/n).", "p = 0.61, n = 100.", "SE ≈ 0.049.", "Multiply by 1.96.", "0.61 ± 0.096 ⇒ about 0.51 to 0.71 (Wilson: 0.512 to 0.700)."], answer: "SE = √(0.61·0.39/100) ≈ 0.049; 0.61 ± 1.96·0.049 ≈ [0.51, 0.71]." },
+  { id: "w-mix", node: "p-mixstyle", task: "Explain why MixStyle adds no parameters and does nothing at inference.", rungs: ["What does MixStyle compute?", "Only means and standard deviations of features.", "Are those learned?", "No, they are computed from the batch.", "What happens when training is False?", "It returns x unchanged, so the deployed model is identical."], answer: "It only computes and mixes batch statistics (no weights), and the layer is the identity at inference." }
+];
+</script>
+<style>
+.conf button[data-dk][aria-pressed="true"] { background: var(--muted); color: var(--surface); }
+.mapbox .edge { fill: none; stroke: var(--edge); stroke-width: 1.3; }
+.mapbox .edge.hot { stroke: var(--azure); stroke-width: 2.2; }
+.nodebox rect.box { fill: var(--surface2); stroke: var(--edge); stroke-width: 1.5; }
+.st-started rect.box { fill: var(--azuresoft); stroke: var(--azure); }
+.st-shaky rect.box { fill: var(--ambersoft); stroke: var(--amber); }
+.st-mis rect.box { fill: var(--eosinsoft); stroke: var(--eosin); }
+.st-held rect.box, .st-skim rect.box, .st-done rect.box { fill: var(--oksoft); stroke: var(--ok); }
+.nodebox.is-next rect.box { stroke: var(--azure); stroke-width: 3; }
+.gbar { fill: var(--edge); } .g-found .gbar { fill: var(--ink); } .g-exp .gbar { fill: var(--azure); } .g-out .gbar { fill: var(--ok); }
+.nt-tag { font-family: var(--f-mono); font-size: 9px; letter-spacing: .08em; fill: var(--muted); }
+.nt-title { font-family: var(--f-display); font-size: 13.5px; font-weight: 600; fill: var(--ink); }
+.cal .axis { stroke: var(--line); } .cal .diag { stroke: var(--muted); stroke-dasharray: 4 4; fill: none; }
+.cal .barr { fill: var(--azure); } .cal text { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); }
+.cal .pt { fill: var(--eosin); }
+.chip { font: 11px var(--f-mono); }
+</style>
+<script>
+(function () {
+"use strict";
+
+/* ================= state ================= */
+var LS_KEY = "wbcdg-research-map-v1";
+function blankProgress() { return { answers: {}, forecasts: {}, trials: {}, gaps: {}, practice: { log: [] }, seen: {}, updatedAt: 0 }; }
+function blankWriting() { return { f: {}, updatedAt: 0 }; }
+var state = { progress: blankProgress(), writing: blankWriting() };
+try {
+  var raw = localStorage.getItem(LS_KEY);
+  if (raw) { var s0 = JSON.parse(raw); if (s0.progress) state.progress = Object.assign(blankProgress(), s0.progress); if (s0.writing) state.writing = Object.assign(blankWriting(), s0.writing); }
+} catch (e) {}
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+/* ================= indexes ================= */
+var NODE = {}; NODES.forEach(function (n) { NODE[n.id] = n; });
+var Q = {};
+Object.keys(PROBE).forEach(function (sid) { PROBE[sid].forEach(function (q, i) { Q[q.id] = { q: q, node: null, kind: "probe", strand: sid, level: i }; }); });
+NODES.forEach(function (n) {
+  if (n.predict) Q[n.predict.id] = { q: n.predict, node: n.id, kind: "predict" };
+  (n.checks || []).forEach(function (q) { Q[q.id] = { q: q, node: n.id, kind: "check" }; });
+});
+var BOARD_BY = {}; BOARD.forEach(function (b) { BOARD_BY[b.id] = b; });
+var UNLOCKS = {}; NODES.forEach(function (n) { (n.req || []).forEach(function (r) { (UNLOCKS[r] = UNLOCKS[r] || []).push(n.id); }); });
+var DEPTH = {};
+function depthOf(id) { if (DEPTH[id] != null) return DEPTH[id]; var d = 0; (NODE[id].req || []).forEach(function (r) { d = Math.max(d, depthOf(r) + 1); }); DEPTH[id] = d; return d; }
+NODES.forEach(function (n) { depthOf(n.id); });
+var GROUP_ORDER = { found: 0, exp: 1, paper: 2, out: 4 };
+var TIER_ORDER = { core: 0, collab: 1, context: 2, later: 3 };
+function rank(n) { return GROUP_ORDER[n.group] * 10 + (n.tier ? TIER_ORDER[n.tier] : 0); }
+var GROUP_NAME = { found: "Foundation", exp: "Your experiment", paper: "Paper", out: "Output" };
+var TIER_NAME = { core: "Core", collab: "Collaborate", context: "Context", later: "Later" };
+
+/* ================= helpers ================= */
+function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function li(arr, cls, raw) { return '<ul class="list ' + (cls || "") + '">' + arr.map(function (x) { return "<li>" + (raw ? x : esc(x)) + "</li>"; }).join("") + "</ul>"; }
+function card(tone, eyebrow, title, body, id) {
+  return '<section class="card ' + (tone || "") + '"' + (id ? ' id="' + id + '"' : "") + '><div class="head">' + (eyebrow ? '<span class="eyebrow">' + esc(eyebrow) + "</span>" : "") + (title ? "<h3>" + esc(title) + "</h3>" : "") + "</div>" + body + "</section>";
+}
+function F(k) { return state.writing.f[k] || ""; }
+function filled(k, min) { return F(k).trim().length >= (min || 20); }
+function field(k, label, ph, tall) {
+  var id = "fx-" + k.replace(/[^a-zA-Z0-9_-]/g, "_");
+  return '<div class="field"><label class="lab" for="' + id + '">' + esc(label) + '</label><textarea id="' + id + '" data-f="' + esc(k) + '"' + (tall ? ' class="tall"' : "") + ' placeholder="' + esc(ph || "") + '">' + esc(F(k)) + "</textarea></div>";
+}
+function hist(qid) { return state.progress.answers[qid] || []; }
+function last(qid) { var h = hist(qid); return h.length ? h[h.length - 1] : null; }
+function firstAns(qid) { var h = hist(qid); return h.length ? h[0] : null; }
+function link(t, u) { return u ? '<a href="' + u + '" target="_blank" rel="noopener">' + esc(t) + "</a>" : esc(t); }
+
+/* ================= probe derivation (binary search per strand) ================= */
+function strandResult(sid) {
+  var qs = PROBE[sid]; var a3 = firstAns(qs[2].id), a1 = firstAns(qs[0].id), a2 = firstAns(qs[1].id);
+  if (!a3) return { next: 2 };
+  if (a3.ok && a3.conf >= 70) return { verdict: "held", text: "Held up to the hardest question." };
+  if (!a1) return { next: 0 };
+  if (!a1.ok) return { verdict: "missing", text: "Missed the entry question: start from the foundations." };
+  if (!a2) return { next: 1 };
+  return { verdict: "shaky", text: a2.ok ? "Floor at level 2; edge between levels 2 and 3." : "Floor at level 1; edge between levels 1 and 2." };
+}
+function strandVerdict(sid) { return strandResult(sid).verdict || null; }
+function probeDone() { return STRANDS.every(function (s) { return !!strandVerdict(s.id); }); }
+function probeStarted() { return STRANDS.some(function (s) { return PROBE[s.id].some(function (q) { return hist(q.id).length; }); }); }
+
+/* ================= derived node state (never stored) ================= */
+function probeHeld(n) { return n.strands && n.strands.length > 0 && n.strands.every(function (s) { return strandVerdict(s) === "held"; }); }
+function outState(id) {
+  var keys = id === "o-tldr" ? ["tldr.found", "tldr.fail", "tldr.matrix", "tldr.gap", "tldr.rq"] : id === "o-mitra" ? ["mitra.m1", "mitra.m2", "mitra.m3", "mitra.m4", "mitra.m5"] : null;
+  if (keys) { var c = keys.filter(function (k) { return filled(k); }).length; return c === keys.length ? "done" : c ? "started" : "new"; }
+  var p = pitchNodes().filter(function (n) { return filled(n.id + ".ask"); }).length;
+  return p >= 2 ? "done" : p ? "started" : "new";
+}
+function nodeState(n) {
+  if (n.group === "out") return outState(n.id);
+  var qs = n.checks || [];
+  var ans = qs.map(function (q) { return last(q.id); }).filter(Boolean);
+  if (!ans.length) return probeHeld(n) ? "skim" : (state.progress.seen[n.id] || (n.predict && last(n.predict.id))) ? "started" : "new";
+  if (ans.some(function (a) { return !a.ok && !a.dk && a.conf >= 70; })) return "mis";
+  if (ans.some(function (a) { return !a.ok || (a.conf != null && a.conf <= 50); })) return "shaky";
+  if (ans.length === qs.length) return "held";
+  return "started";
+}
+function satisfied(n) { var s = nodeState(n); return s === "held" || s === "skim" || s === "done"; }
+var STATE_LABEL = { "new": "Not started", started: "Started", shaky: "Shaky", mis: "Misconception", held: "Held", skim: "Held (probe)", done: "Done" };
+var STATE_PILL = { "new": "", started: "azure", shaky: "amber", mis: "eosin", held: "ok", skim: "ok", done: "ok" };
+function statePill(st) { return '<span class="pill ' + STATE_PILL[st] + '">' + STATE_LABEL[st] + "</span>"; }
+function depthLabel(n) {
+  if (!n.strands || !n.strands.length || !probeDone()) return "";
+  var v = n.strands.map(strandVerdict);
+  if (v.indexOf("missing") >= 0) return "Read deeply";
+  if (v.every(function (x) { return x === "held"; })) return "Skim";
+  return "Read";
+}
+function nodeChip(id) {
+  var n = NODE[id]; var st = nodeState(n);
+  return '<button class="chip ' + (satisfied(n) ? "held" : st === "mis" ? "mis" : "") + '" data-go="n-' + id + '">' + esc(n.short) + "</button>";
+}
+function nextNode() {
+  var mis = NODES.filter(function (n) { return nodeState(n) === "mis"; });
+  if (mis.length) return { node: mis[0], why: "You answered a check here wrongly with high confidence. Repair it before building on it." };
+  var c = NODES.filter(function (n) { return !satisfied(n) && (n.req || []).every(function (r) { return satisfied(NODE[r]); }); });
+  var why = "Everything it depends on is held, so it is the next single step.";
+  if (!c.length) { c = NODES.filter(function (n) { return !satisfied(n); }); why = "The lowest open step on the map."; }
+  c.sort(function (a, b) { return (DEPTH[a.id] - DEPTH[b.id]) || (rank(a) - rank(b)); });
+  return c.length ? { node: c[0], why: why } : null;
+}
+function pitchNodes() { return NODES.filter(function (n) { return n.group === "paper" && (n.tier === "collab" || n.askHint); }); }
+
+/* ================= saving: private per-user doc, browser copy as fallback ================= */
+var S = { db: null, uid: null, timers: {}, busy: {}, again: {}, retried: {} };
+function setSave(mode, code) {
+  var el = document.getElementById("saveState"); if (!el) return;
+  el.className = "save " + (mode === "ok" ? "ok" : mode === "busy" ? "busy" : "local");
+  el.textContent = mode === "ok" ? "Saved to your account" : mode === "busy" ? "Saving…" : "Saved in this browser only" + (code ? " (" + code + ")" : "");
+}
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
+function touch(doc) { state[doc].updatedAt = Date.now(); saveLocal(); if (!S.db) { setSave("local"); return; } clearTimeout(S.timers[doc]); setSave("busy"); S.timers[doc] = setTimeout(function () { push(doc); }, 1200); }
+function compact(doc) {
+  var body = clone(state[doc]);
+  if (JSON.stringify(body).length > 230000 && doc === "progress") {
+    body.practice.log = body.practice.log.slice(-150);
+    Object.keys(body.answers).forEach(function (k) { var h = body.answers[k]; if (h.length > 4) body.answers[k] = [h[0]].concat(h.slice(-3)); });
+  }
+  return body;
+}
+function push(doc) {
+  if (!S.db) return;
+  if (S.busy[doc]) { S.again[doc] = true; return; }
+  S.busy[doc] = true;
+  S.db.doc("data/users/" + S.uid + "/" + doc).set(compact(doc)).then(function () {
+    S.busy[doc] = false; S.retried[doc] = false;
+    if (S.again[doc]) { S.again[doc] = false; push(doc); } else setSave("ok");
+  }, function (e) {
+    S.busy[doc] = false;
+    if (e && e.code === "unavailable" && !S.retried[doc]) { S.retried[doc] = true; setTimeout(function () { push(doc); }, 1500 + Math.random() * 1500); return; }
+    S.db = null; setSave("local", e && e.code);
+  });
+}
+function initCloud() {
+  if (!window.claude || typeof window.claude.use !== "function") { setSave("local"); return; }
+  Promise.all([window.claude.use("user"), window.claude.use("db")]).then(function (r) {
+    var user = r[0], db = r[1];
+    if (!user || !db) { setSave("local"); return; }
+    return user.id().then(function (uid) {
+      if (!uid) { setSave("local"); return; }
+      S.uid = uid; S.db = db;
+      var docs = ["progress", "writing"];
+      return Promise.all(docs.map(function (d) { return db.doc("data/users/" + uid + "/" + d).get(); })).then(function (snaps) {
+        var changed = false;
+        docs.forEach(function (d, i) {
+          var sn = snaps[i];
+          if (sn.exists) {
+            var body = clone(sn.data());
+            if ((body.updatedAt || 0) >= (state[d].updatedAt || 0)) { state[d] = d === "progress" ? Object.assign(blankProgress(), body) : Object.assign(blankWriting(), body); changed = true; }
+            else push(d);
+          } else if (state[d].updatedAt) push(d);
+        });
+        saveLocal(); setSave("ok");
+        if (changed) rerender();
+      });
+    });
+  }).catch(function () { setSave("local"); });
+}
+
+/* ================= question block ================= */
+var draft = {};
+function confHtml(qid, d, forecast) {
+  var stops = [0, 30, 50, 70, 90, 100];
+  return '<div class="conf" role="group" aria-label="Confidence that your answer is right"><span class="lab">Confidence</span>' +
+    stops.map(function (s) { return '<button type="button" data-c="' + s + '" data-conf="' + qid + '" aria-pressed="' + (d.conf === s && !d.dk) + '">' + s + "%</button>"; }).join("") +
+    (forecast ? "" : '<button type="button" data-dk="' + qid + '" aria-pressed="' + (!!d.dk) + '" style="margin-left:6px">I don\'t know</button>') + "</div>";
+}
+function thinkEcho(L) { return L.th ? '<p class="note">Your thinking: ' + esc(L.th) + "</p>" : ""; }
+function verdictHtml(qid, q, L) {
+  if (q.a === -1) {
+    var r = state.progress.forecasts[qid];
+    if (r && r.resolved != null) {
+      var hit = r.resolved === L.pick;
+      return '<div class="verdict ' + (hit ? "right" : "wrong") + '"><b>' + (hit ? "Your forecast came true." : "Your forecast missed.") + "</b><p class=\"small\">You forecast “" + esc(q.opts[L.pick]) + "” at " + L.conf + "%. Outcome: “" + esc(q.opts[r.resolved]) + "”.</p><p class=\"small\">" + esc(q.why) + "</p>" + thinkEcho(L) + "</div>";
+    }
+    return '<div class="verdict wait"><b>Forecast recorded: “' + esc(q.opts[L.pick]) + "” at " + L.conf + '%.</b><p class="small">Run the trial on this page, then record what happened. Your forecasts get their own calibration record.</p>' + thinkEcho(L) + "</div>";
+  }
+  var head = L.dk ? "Marked as an honest gap." : L.ok ? (L.conf <= 50 ? "Right, but fragile: you were " + L.conf + "% sure." : "Right.") : (L.conf >= 70 ? "Wrong at " + L.conf + "% confidence. That is a committed misconception, the most useful thing a check can find. Repair it before building on it." : "Wrong.");
+  var model = (!L.ok && !L.dk && q.models && q.models[L.pick]) ? '<p class="small"><b>The wrong model behind that option:</b> ' + esc(q.models[L.pick]) + ".</p>" : "";
+  return '<div class="verdict ' + (L.ok ? "right" : "wrong") + '"><b>' + esc(head) + '</b><p class="small">' + esc(q.why) + "</p>" + model + thinkEcho(L) + "</div>";
+}
+function qHtml(qid, ctx) {
+  var meta = Q[qid], q = meta.q, d = draft[qid] || {};
+  var L = last(qid), show = L && !d.retry, forecast = q.a === -1;
+  var tag = forecast ? '<span class="pill amber">Forecast</span>' : meta.kind === "predict" ? '<span class="pill azure">Predict</span>' : meta.kind === "probe" ? '<span class="pill">Probe · level ' + (meta.level + 1) + "</span>" : '<span class="pill">Check</span>';
+  var h = '<div class="q" data-qbox="' + qid + '" data-ctx="' + (ctx || "") + '"><div class="meta">' + tag + (q.mode === "disc" ? '<span class="pill">Discriminate</span>' : "") + "</div>";
+  h += '<p class="stem">' + esc(q.stem) + '</p><div class="opts" role="radiogroup">';
+  q.opts.forEach(function (o, i) {
+    var cls = "";
+    if (show && !forecast) { if (i === q.a) cls = " right"; else if (!L.dk && i === L.pick) cls = " wrong"; }
+    var checked = show ? L.pick === i : d.pick === i;
+    h += '<label class="opt' + cls + '"><input type="radio" name="r-' + qid + (show ? "-done" : "") + '" value="' + i + '" data-pick="' + qid + '"' + (checked ? " checked" : "") + (show ? " disabled" : "") + "><span>" + esc(o) + "</span></label>";
+  });
+  h += "</div>";
+  if (!show) {
+    h += confHtml(qid, d, forecast);
+    h += '<div class="field"><label class="lab" for="th-' + qid + '">Thinking out loud</label><textarea id="th-' + qid + '" data-th="' + qid + '" placeholder="What you reached for first, where you were unsure. It is the most useful record you can leave yourself.">' + esc(d.th || "") + "</textarea></div>";
+    h += '<div class="btnrow"><button class="btn primary" data-act="submit" data-q="' + qid + '">' + (forecast ? "Record forecast" : "Submit") + '</button><span class="note" data-msg="' + qid + '" aria-live="polite"></span></div>';
+  } else {
+    h += verdictHtml(qid, q, L);
+    if (ctx !== "practice" && ctx !== "probe") h += '<div class="btnrow"><button class="btn" data-act="retry" data-q="' + qid + '">Answer again</button>' + (hist(qid).length > 1 ? '<span class="note">' + hist(qid).length + " attempts on record</span>" : "") + "</div>";
+  }
+  return h + "</div>";
+}
+function submit(qid) {
+  var q = Q[qid].q, d = draft[qid] || {}, msg = document.querySelector('[data-msg="' + qid + '"]');
+  if (!d.dk && d.pick == null) { if (msg) msg.textContent = "Pick an option, or choose “I don't know”."; return false; }
+  if (!d.dk && d.conf == null) { if (msg) msg.textContent = "Set your confidence first."; return false; }
+  var rec = { pick: d.dk ? null : d.pick, conf: d.dk ? null : d.conf, dk: !!d.dk, th: (d.th || "").trim(), at: Date.now() };
+  if (q.a >= 0) rec.ok = !rec.dk && rec.pick === q.a;
+  (state.progress.answers[qid] = state.progress.answers[qid] || []).push(rec);
+  delete draft[qid];
+  touch("progress");
+  return true;
+}
+
+/* ================= views ================= */
+var VIEWS = [["goal", "Goal"], ["probe", "Probe"], ["map", "Map"], ["matrix", "Puzzle matrix"], ["practice", "Practice"], ["write", "Write"], ["evidence", "Evidence"]];
+var viewEl = document.getElementById("view");
+var tabRow = document.getElementById("tabRow");
+tabRow.innerHTML = VIEWS.map(function (v) { return '<button data-tab="' + v[0] + '">' + v[1] + "</button>"; }).join("");
+
+/* ---------- Goal ---------- */
+var DEFAULT_GOAL = "Build a white-blood-cell classifier with as few parameters as possible that keeps every class reliable on a lab it has never seen, so it can run on the computer beside a microscope. Get there by understanding what each researcher in domain generalization has contributed, testing their pieces on my own data, and writing to them where our pieces fit.";
+function renderGoal() {
+  var nx = nextNode();
+  var h = '<div class="stagehead"><span class="eyebrow">Where you are going</span><h2>One goal, three tests it has to pass</h2></div>';
+  h += card("key", "Your goal, in your words", "", field("goal", "Edit it whenever it sharpens", DEFAULT_GOAL, true) + (F("goal") ? "" : '<p class="note">Empty for now. Placeholder text shows the goal as you described it; write your own version.</p>'));
+  h += '<div class="grid3">' +
+    card("", "Test 1", "Few parameters", '<div class="stat"><span class="big">3.41M</span><span class="note">DM-FNet (paper, Table 9)</span></div><p class="small">Every method on this map shows what it costs at inference. Most good DG fixes cost zero.</p>') +
+    card("", "Test 2", "Every class holds on a new lab", '<div class="stat"><span class="big">0.42</span><span class="note">worst class on the unseen source: lymphocyte (100 images)</span></div><p class="small">Judged by worst-class F1 under leave-one-dataset-out, never by merged-split accuracy.</p>') +
+    card("", "Test 3", "Runs beside the microscope", '<div class="stat"><span class="big">48.8 ms</span><span class="note">per image on a Quadro RTX 4000 (paper)</span></div><p class="small">Your report points to a locked base model plus a bounded per-site calibration, the shape India\'s CDSCO guidance expects.</p>') + "</div>";
+  if (!probeDone()) h += card("wait", "Start here", probeStarted() ? "Finish the probe" : "Take the probe first (about 15 minutes)", '<p>Before any reading, the map measures what you already hold on seven strands, the way learnharness does before it teaches. Strands you hold let you skim papers; strands you miss send you to the foundations first.</p><div class="btnrow"><button class="btn primary" data-go="probe">' + (probeStarted() ? "Continue the probe" : "Start the probe") + "</button></div>");
+  if (nx) h += card("key", "Next single step", nx.node.title, '<div class="meta">' + statePill(nodeState(nx.node)) + '<span class="pill">' + esc(GROUP_NAME[nx.node.group]) + "</span>" + (nx.node.tier ? '<span class="pill">' + TIER_NAME[nx.node.tier] + "</span>" : "") + '</div><p class="muted">' + esc(nx.why) + '</p><div class="btnrow"><button class="btn primary" data-go="n-' + nx.node.id + '">Open it</button><button class="btn" data-go="map">See the whole map</button></div>');
+  h += card("", "The loop, for every paper", "Eight moves, always in this order",
+    '<div class="loop">' + [["Probe", "Find your edge before reading"], ["Predict", "Commit to a guess, then read"], ["Read", "For the one equation and the one number"], ["Check", "Apply it, with your confidence"], ["Connect", "Their claim ∧ your data ⟹ your claim"], ["Trial", "The smallest Kaggle run that tests it"], ["TL;DR", "Five lines in your own words"], ["Ask", "A question only you could ask them"]].map(function (x) { return "<div><b>" + x[0] + "</b><span>" + x[1] + "</span></div>"; }).join("") + "</div>" +
+    '<p class="muted small">From learnharness: understanding is judged by what you answer, never by a ticked box. A wrong answer given confidently is treated as the most valuable thing a check can find.</p>');
+  var groups = [["found", "Foundations"], ["exp", "Your experiments"], ["paper", "Papers"], ["out", "Outputs"]];
+  h += card("", "Progress", "What you hold so far", '<div class="grid2">' + groups.map(function (g) {
+    var ns = NODES.filter(function (n) { return n.group === g[0]; }); var d = ns.filter(satisfied).length;
+    return '<div class="stat"><span class="note">' + g[1] + " · " + d + " of " + ns.length + '</span><div class="bar"><span style="width:' + Math.round(100 * d / ns.length) + '%"></span></div></div>';
+  }).join("") + "</div>");
+  return h;
+}
+
+/* ---------- Probe ---------- */
+var clearArmed = false;
+function renderProbe() {
+  var h = '<div class="stagehead"><span class="eyebrow">Measure before reading</span><h2>Find the edge of what you already hold</h2><p class="lede">Seven strands, at most three questions each. Each strand opens at its hardest question. A confident right answer settles it; anything else walks down to find your floor. Answer honestly: confidence is data, and “I don\'t know” is a valid answer.</p></div>';
+  h += '<div class="scroll"><table class="tbl"><thead><tr><th>Strand</th><th>Result</th><th>Reading</th></tr></thead><tbody>' + STRANDS.map(function (s) {
+    var r = strandResult(s.id);
+    var res = r.verdict ? '<span class="pill ' + (r.verdict === "held" ? "ok" : r.verdict === "missing" ? "eosin" : "amber") + '">' + r.verdict + "</span>" : PROBE[s.id].some(function (q) { return hist(q.id).length; }) ? '<span class="pill azure">in progress</span>' : '<span class="pill">not started</span>';
+    return "<tr><td>" + esc(s.name) + "</td><td>" + res + '</td><td class="small muted">' + esc(r.text || "") + "</td></tr>";
+  }).join("") + "</tbody></table></div>";
+  var cur = null;
+  for (var i = 0; i < STRANDS.length; i++) { var r = strandResult(STRANDS[i].id); if (r.next != null) { cur = { s: STRANDS[i], k: i, level: r.next }; break; } }
+  if (cur) {
+    h += card("key", "Strand " + (cur.k + 1) + " of 7", cur.s.name, qHtml(PROBE[cur.s.id][cur.level].id, "probe"));
+  } else {
+    var skim = NODES.filter(function (n) { return n.group === "paper" && depthLabel(n) === "Skim"; });
+    var deep = NODES.filter(function (n) { return n.group === "paper" && depthLabel(n) === "Read deeply"; });
+    h += card("done", "Probe complete", "Your map is adjusted", '<p>Strands you hold mark their foundations as held and their papers as “Skim”. Strands you missed send those papers to “Read deeply”.</p>' +
+      '<div class="grid2"><div><span class="eyebrow">Skim</span><div>' + (skim.map(function (n) { return nodeChip(n.id); }).join(" ") || '<span class="muted small">none</span>') + '</div></div><div><span class="eyebrow">Read deeply</span><div>' + (deep.map(function (n) { return nodeChip(n.id); }).join(" ") || '<span class="muted small">none</span>') + "</div></div></div>" +
+      '<div class="btnrow"><button class="btn primary" data-go="map">Open the map</button><button class="btn" data-act="clearprobe">' + (clearArmed ? "Click again to clear all probe answers" : "Retake the probe") + "</button></div>");
+  }
+  return h;
+}
+
+/* ---------- Map ---------- */
+function mapSvg(nextId) {
+  var W = 160, H = 48, GX = 56, GY = 12, P = 16, TOP = 26;
+  var cols = {}; NODES.forEach(function (n) { (cols[DEPTH[n.id]] = cols[DEPTH[n.id]] || []).push(n); });
+  var keys = Object.keys(cols).map(Number).sort(function (a, b) { return a - b; });
+  var maxr = 0; keys.forEach(function (d) { cols[d].sort(function (a, b) { return rank(a) - rank(b); }); maxr = Math.max(maxr, cols[d].length); });
+  var height = TOP + P + maxr * (H + GY) - GY + P;
+  var width = P * 2 + keys.length * (W + GX) - GX;
+  var pos = {};
+  keys.forEach(function (d) { var arr = cols[d]; var colH = arr.length * (H + GY) - GY; var y0 = TOP + P + (maxr * (H + GY) - GY - colH) / 2; arr.forEach(function (n, i) { pos[n.id] = { x: P + d * (W + GX), y: y0 + i * (H + GY) }; }); });
+  var s = '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + " " + height + '" role="img" aria-label="Dependency map of foundations, experiments, papers and outputs">';
+  keys.forEach(function (d) { s += '<text class="nt-tag" x="' + (P + d * (W + GX)) + '" y="' + (P + 6) + '">STEP ' + (d + 1) + "</text>"; });
+  NODES.forEach(function (n) { (n.req || []).forEach(function (r) {
+    var a = pos[r], b = pos[n.id]; var x1 = a.x + W, y1 = a.y + H / 2, x2 = b.x, y2 = b.y + H / 2;
+    s += '<path class="edge' + (n.id === nextId ? " hot" : "") + '" d="M' + x1 + " " + y1 + " C" + (x1 + GX / 2) + " " + y1 + " " + (x2 - GX / 2) + " " + y2 + " " + x2 + " " + y2 + '"/>';
+  }); });
+  NODES.forEach(function (n) {
+    var p = pos[n.id], st = nodeState(n);
+    var tag = (n.group === "paper" ? (TIER_NAME[n.tier] || "Paper") : GROUP_NAME[n.group]).toUpperCase();
+    s += '<g class="nodebox st-' + st + " g-" + n.group + (n.id === nextId ? " is-next" : "") + '" data-go="n-' + n.id + '" tabindex="0" role="link" aria-label="' + esc(n.title + ": " + STATE_LABEL[st]) + '">' +
+      '<rect class="box" x="' + p.x + '" y="' + p.y + '" width="' + W + '" height="' + H + '" rx="5"/>' +
+      '<rect class="gbar" x="' + p.x + '" y="' + (p.y + 6) + '" width="3" height="' + (H - 12) + '" rx="1.5"/>' +
+      '<text class="nt-tag" x="' + (p.x + 11) + '" y="' + (p.y + 17) + '">' + esc(tag) + "</text>" +
+      '<text class="nt-title" x="' + (p.x + 11) + '" y="' + (p.y + 36) + '">' + esc(n.short) + "</text></g>";
+  });
+  return s + "</svg>";
+}
+function renderMap() {
+  var nx = nextNode();
+  var h = '<div class="stagehead"><span class="eyebrow">The dependency map</span><h2>Foundations first, then your data, then the papers</h2><p class="lede">Each box is one step. Arrows point from what a step needs to what it unlocks. A box turns green only when its checks are answered right with confidence, never because you visited it.</p></div>';
+  h += '<div class="legend"><span><i style="background:var(--surface2)"></i>Not started</span><span><i style="background:var(--azuresoft);border-color:var(--azure)"></i>Started</span><span><i style="background:var(--ambersoft);border-color:var(--amber)"></i>Shaky</span><span><i style="background:var(--eosinsoft);border-color:var(--eosin)"></i>Misconception</span><span><i style="background:var(--oksoft);border-color:var(--ok)"></i>Held</span><span><i style="border-color:var(--azure);border-width:3px"></i>Next step</span></div>';
+  h += '<div class="mapbox">' + mapSvg(nx ? nx.node.id : null) + "</div>";
+  if (nx) h += '<div class="callout"><b>Next:</b> ' + esc(nx.node.title) + '. <span class="muted">' + esc(nx.why) + '</span> <button class="btn" data-go="n-' + nx.node.id + '">Open</button></div>';
+  var groups = [["found", "Foundations: unconditional truths"], ["exp", "Your experiments"], ["paper", "Papers"], ["out", "Outputs"]];
+  h += '<div class="grid2">' + groups.map(function (g) {
+    var ns = NODES.filter(function (n) { return n.group === g[0]; }).sort(function (a, b) { return DEPTH[a.id] - DEPTH[b.id] || rank(a) - rank(b); });
+    return card("", g[1], "", '<ul class="list">' + ns.map(function (n) { var dl = n.group === "paper" ? depthLabel(n) : ""; return '<li><a href="#n-' + n.id + '">' + esc(n.title) + "</a> " + statePill(nodeState(n)) + (n.tier ? ' <span class="pill">' + TIER_NAME[n.tier] + "</span>" : "") + (dl ? ' <span class="pill">' + dl + "</span>" : "") + "</li>"; }).join("") + "</ul>");
+  }).join("") + "</div>";
+  return h;
+}
+
+/* ---------- Matrix ---------- */
+var selCell = null;
+function gapOn(key) { var g = state.progress.gaps[key]; return g != null ? g : !!MX_GAPS[key]; }
+function papersIn(key) { return NODES.filter(function (n) { return (n.cells || []).indexOf(key) >= 0; }); }
+function renderMatrix() {
+  var h = '<div class="stagehead"><span class="eyebrow">Where each paper\'s piece fits</span><h2>The puzzle matrix</h2><p class="lede">Rows are what changes between two labs (the four factors of P(x, y), with acquisition split into its physical parts). Columns are the mechanisms researchers use against it. The bottom row is what each mechanism costs at inference, which is the test your goal cares about. Dashed cells are open gaps: those are where your proposals come from.</p></div>';
+  h += '<div class="scroll"><table class="mx"><thead><tr><th></th>' + MX_COLS.map(function (c) { return "<th>" + esc(c.name) + "</th>"; }).join("") + "</tr></thead><tbody>";
+  MX_ROWS.forEach(function (r) {
+    h += '<tr><th class="row">' + esc(r.name) + '<div class="note">' + esc(r.sub) + "</div></th>";
+    MX_COLS.forEach(function (c) {
+      var key = r.id + "|" + c.id; var ps = papersIn(key); var mine = MX_MINE[key] || [];
+      var noted = filled("cell." + key, 3);
+      h += '<td class="' + (gapOn(key) ? "gap" : "") + (selCell === key ? " sel" : "") + '" data-cell="' + key + '" tabindex="0" aria-label="' + esc(r.name + " × " + c.name) + '">' +
+        ps.map(function (n) { return '<span class="chip ' + (satisfied(n) ? "held" : nodeState(n) === "mis" ? "mis" : "") + '">' + esc(n.short) + "</span>"; }).join("") +
+        mine.map(function (id) { return '<span class="chip mine">' + esc(NODE[id].short) + "</span>"; }).join("") +
+        (gapOn(key) ? '<div class="note" style="color:var(--eosin)">gap</div>' : "") + (noted ? '<div class="note">✎ note</div>' : "") + "</td>";
+    });
+    h += "</tr>";
+  });
+  h += '<tr><th class="row">Inference cost</th>' + MX_COLS.map(function (c) { return '<td class="cost">' + esc(c.cost) + "</td>"; }).join("") + "</tr></tbody></table></div>";
+  h += '<div class="legend"><span><i style="background:var(--azuresoft);border-color:var(--azure)"></i>Your experiment</span><span><i style="border-color:var(--ok)"></i>Paper you hold</span><span><i style="border-style:dashed;border-color:var(--eosin);background:var(--eosinsoft)"></i>Open gap</span></div>';
+  if (selCell) {
+    var parts = selCell.split("|"); var r0 = MX_ROWS.filter(function (r) { return r.id === parts[0]; })[0]; var c0 = MX_COLS.filter(function (c) { return c.id === parts[1]; })[0];
+    var ps = papersIn(selCell), mine = MX_MINE[selCell] || [];
+    h += card(gapOn(selCell) ? "trap" : "key", r0.name + " × " + c0.name, "What sits in this cell",
+      '<div><span class="eyebrow">Papers</span><div>' + (ps.map(function (n) { return nodeChip(n.id); }).join(" ") || '<span class="muted small">No paper on this map sits here yet.</span>') + "</div></div>" +
+      (mine.length ? '<div><span class="eyebrow">Your experiments</span><div>' + mine.map(nodeChip).join(" ") + "</div></div>" : "") +
+      (MX_GAPS[selCell] ? '<div class="callout eosin small">' + esc(MX_GAPS[selCell]) + "</div>" : "") +
+      '<div class="btnrow"><button class="btn" data-act="gap" data-cell="' + selCell + '">' + (gapOn(selCell) ? "Unmark as gap" : "Mark as an open gap") + "</button></div>" +
+      field("cell." + selCell, "Your note on this cell: what is known, what is missing, what you could test", "e.g. Tellez shows augmentation beats normalization for H&E; nobody has tested it for granule-defined WBC classes."));
+  } else h += '<p class="note">Select a cell to see its papers, add a note, or mark it as a gap.</p>';
+  return h;
+}
+
+/* ---------- Node page ---------- */
+var revealed = {};
+function hintGate(key, fieldKey, body, label) {
+  var open = revealed[key] || filled(fieldKey, 30);
+  return '<details data-keep="h-' + esc(key) + '"><summary>' + esc(label || "Hint from the research") + '</summary><div class="in">' + (open ? body : '<p class="note">Write your own version above first, then compare.</p><div class="btnrow"><button class="btn" data-act="reveal" data-key="' + esc(key) + '">Show it anyway</button></div>') + "</div></details>";
+}
+function trialCard(n) {
+  var t = n.trial; if (!t) return "";
+  var st = state.progress.trials[n.id] || "todo";
+  var h = '<p class="muted small"><b>Measure:</b> ' + esc(t.measure) + "</p>" + '<pre class="code">' + esc(t.code) + "</pre>" +
+    '<div class="field"><label class="lab" for="ts-' + n.id + '">Status</label><select id="ts-' + n.id + '" data-trial="' + n.id + '"><option value="todo"' + (st === "todo" ? " selected" : "") + '>Not run yet</option><option value="running"' + (st === "running" ? " selected" : "") + '>Running on Kaggle</option><option value="done"' + (st === "done" ? " selected" : "") + ">Done</option></select></div>" +
+    field(n.id + ".trial.result", "Result: numbers with seeds, what surprised you", "e.g. macro-F1 0.556 → 0.61 ± 0.02 (3 seeds); eosinophil unchanged, monocyte +0.12.", true);
+  if (n.predict && n.predict.a === -1 && last(n.predict.id)) {
+    var r = state.progress.forecasts[n.predict.id];
+    h += '<div class="callout amber"><div class="field"><label class="lab" for="rs-' + n.id + '">What happened? (resolves your forecast)</label><select id="rs-' + n.id + '" data-resolve-sel="' + n.predict.id + '"><option value="">Choose the outcome</option>' + n.predict.opts.map(function (o, i) { return '<option value="' + i + '"' + (r && r.resolved === i ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("") + '</select></div><div class="btnrow"><button class="btn" data-act="resolve" data-q="' + n.predict.id + '">Record outcome</button></div></div>';
+  }
+  return card(st === "done" ? "done" : "wait", n.group === "paper" ? "Step 5 · Kaggle trial" : "Kaggle trial", t.title, h);
+}
+function renderNode(id) {
+  var n = NODE[id];
+  if (!state.progress.seen[id]) { state.progress.seen[id] = Date.now(); touch("progress"); }
+  var st = nodeState(n);
+  var h = '<div class="stagehead"><span class="eyebrow">' + esc(GROUP_NAME[n.group]) + (n.tier ? " · " + TIER_NAME[n.tier] : "") + "</span><h2>" + esc(n.title) + "</h2>";
+  if (n.cite) h += '<p class="muted">' + link(n.cite, n.url) + (n.url2 ? " · " + link("second paper", n.url2) : "") + (n.url ? "" : ' <span class="note">(no public link on this map: use the copy you were sent)</span>') + "</p>";
+  h += '<div class="meta">' + statePill(st) + (depthLabel(n) ? '<span class="pill">' + depthLabel(n) + "</span>" : "") + (n.params ? '<span class="pill">Inference cost: ' + esc(n.params) + "</span>" : "") + (n.target ? '<span class="pill ' + (n.target === "no" ? "" : "amber") + '">Needs target images: ' + esc(n.target) + "</span>" : "") + "</div>";
+  var needs = (n.req || []), unl = UNLOCKS[id] || [];
+  h += '<div class="meta small">' + (needs.length ? '<span class="note">Needs</span> ' + needs.map(nodeChip).join(" ") : '<span class="note">Starts from nothing: an unconditional truth.</span>') + (unl.length ? ' <span class="note" style="margin-left:8px">Unlocks</span> ' + unl.map(nodeChip).join(" ") : "") + "</div></div>";
+
+  if (n.group === "found") {
+    h += card("key", "The unconditional truth", "", "<p>" + esc(n.statement) + '</p><div class="eq">' + n.eqHtml + "</div>" + (n.yours ? '<p class="muted small"><b>In your work:</b> ' + esc(n.yours) + "</p>" : ""));
+    h += card("", "Check that it landed", "Answer before you move on", n.checks.map(function (q) { return qHtml(q.id, "check"); }).join(""));
+    h += card("", "In your own words", "", field(id + ".words", "State it as you would on a whiteboard", "One or two sentences. If it needs a caveat, it isn't unconditional yet: dig one level down."));
+    return h;
+  }
+  if (n.group === "exp") {
+    h += card("key", "What you ran", "", li(n.facts, "", true));
+    if (n.predict) h += card("wait", "Step 1 · Commit first", "Forecast before you look further", qHtml(n.predict.id, "predict"));
+    h += card("", "Step 2 · Check", "What the numbers mean", n.checks.map(function (q) { return qHtml(q.id, "check"); }).join(""));
+    h += trialCard(n);
+    h += card("", "Step 3 · Your reading", "", field(id + ".reading", "What this experiment shows, and what it does not show yet", "Keep in-distribution and out-of-distribution numbers apart. Give intervals for small test sets.", true));
+    return h;
+  }
+  /* paper */
+  if (n.predict) h += card(n.predict.a === -1 ? "wait" : "key", "Step 1 · Predict", "Commit to a guess before you read", qHtml(n.predict.id, "predict"));
+  h += card("", "Step 2 · Read for the generator", "Their puzzle piece",
+    "<p>" + esc(n.piece) + '</p><div class="eq">' + n.eqHtml + "</div>" +
+    (n.numbers && n.numbers.length ? '<div><span class="eyebrow">Numbers to know</span>' + li(n.numbers) + "</div>" : "") +
+    (n.readFor ? '<div><span class="eyebrow">Read these parts closely</span>' + li(n.readFor) + "</div>" : "") +
+    (n.cells && n.cells.length ? '<div class="meta"><span class="note">In the matrix:</span> ' + n.cells.map(function (k) { var p = k.split("|"); var r = MX_ROWS.filter(function (x) { return x.id === p[0]; })[0]; var c = MX_COLS.filter(function (x) { return x.id === p[1]; })[0]; return '<button class="chip" data-cellgo="' + k + '">' + esc(r.name + " × " + c.name) + "</button>"; }).join(" ") + "</div>" : ""));
+  h += '<details data-keep="chk-' + id + '"' + ((n.checks || []).some(function (q) { return last(q.id); }) ? " open" : "") + '><summary>Step 3 · Check your understanding (open when you have read)</summary><div class="in">' + (n.checks || []).map(function (q) { return qHtml(q.id, "check"); }).join("") + "</div></details>";
+  h += card("", "Step 4 · Connect", "Their claim ∧ your data ⟹ your claim",
+    '<div class="callout small">' + esc(n.link) + "</div>" +
+    '<div class="grid3">' + field(id + ".chain.their", "Their claim (premise)", "One sentence, with their number.") + field(id + ".chain.mine", "Your observation (premise)", "One sentence, with your number and file.") + field(id + ".chain.then", "Therefore (your claim or question)", "What follows from both together?") + "</div>");
+  h += trialCard(n);
+  h += card("", "Step 6 · TL;DR", "Five lines, your words",
+    '<div class="grid2">' + field(id + ".tldr.problem", "Problem they attack", "") + field(id + ".tldr.piece", "Their piece (mechanism, in one line)", "") + field(id + ".tldr.evidence", "Evidence (the one number)", "") + field(id + ".tldr.limit", "Limit (what they did not test)", "") + "</div>" + field(id + ".tldr.use", "What it means for your goal (parameters, unseen lab, device)", "") +
+    feedbackBtn("tldr", id));
+  if (n.tier === "collab" || n.askHint) {
+    h += card("", "Step 7 · Ask", "A question only you could ask them",
+      field(id + ".ask", "Your question to the authors", "Grounded in your data; answerable in five minutes; shows you read their tables.") +
+      (n.askHint ? hintGate("ask-" + id, id + ".ask", "<p>" + esc(n.askHint) + "</p>", "A suggested question (compare after writing yours)") : "") +
+      '<div class="btnrow"><button class="btn" data-go="write">Assemble the pitch in Write</button></div>');
+  }
+  return h;
+}
+function feedbackBtn(kind, id) {
+  var out = "fb-" + kind + "-" + id.replace(/[^a-zA-Z0-9-]/g, "_");
+  return '<div class="btnrow"><button class="btn" data-act="feedback" data-kind="' + kind + '" data-id="' + esc(id) + '" data-out="' + out + '">Ask Claude to review this (it will not rewrite it)</button></div><div class="out" id="' + out + '" hidden aria-live="polite"></div>';
+}
+
+/* ---------- Practice ---------- */
+var PS = null;
+function nodeItems(n) {
+  var items = [];
+  (n.checks || []).forEach(function (q) { items.push({ type: "q", id: q.id, node: n.id, mode: q.mode === "disc" ? "disc" : "recall" }); });
+  BOARD.forEach(function (b) { if (b.node === n.id) items.push({ type: "w", id: b.id, node: n.id, mode: "comp" }); });
+  return items;
+}
+function practicePool() {
+  return NODES.filter(function (n) {
+    if (!nodeItems(n).length) return false;
+    if (n.group === "found") return true;
+    return (n.checks || []).some(function (q) { return hist(q.id).length; }) || (n.predict && hist(n.predict.id).length);
+  });
+}
+function weakness(n) { return { mis: 5, shaky: 4, started: 3, "new": 2, held: 1, skim: 1, done: 0 }[nodeState(n)] || 1; }
+function pickItem() {
+  var re = Object.keys(PS.misses).filter(function (id) { return !PS.retested[id] && id !== PS.last; });
+  var node = null;
+  if (re.length) node = NODE[re[0]];
+  else {
+    var cand = practicePool().filter(function (n) { return n.id !== PS.last; });
+    cand.sort(function (a, b) { return weakness(b) - weakness(a) || (PS.when[a.id] || 0) - (PS.when[b.id] || 0) || Math.random() - .5; });
+    node = cand[0] || null;
+  }
+  if (!node) return null;
+  var items = nodeItems(node), shown = PS.shown[node.id] || {}, avoid = PS.missedItem[node.id];
+  var pick = null, order = ["recall", "disc", "comp"];
+  for (var i = 0; i < order.length && !pick; i++) {
+    if (shown[order[i]]) continue;
+    var c = items.filter(function (it) { return it.mode === order[i] && it.id !== avoid; });
+    if (c.length) pick = c[Math.floor(Math.random() * c.length)];
+  }
+  if (!pick) { var c2 = items.filter(function (it) { return it.id !== avoid; }); var src = c2.length ? c2 : items; pick = src[Math.floor(Math.random() * src.length)]; }
+  pick.retest = !!PS.misses[node.id] && !PS.retested[node.id];
+  if (pick.type === "q") draft[pick.id] = { retry: true };
+  PS.rung = 0; PS.revealed = false; PS.done = false;
+  return pick;
+}
+function logPractice(it, ok, rung) {
+  var log = state.progress.practice.log; log.push({ at: Date.now(), id: it.id, node: it.node, mode: it.mode, ok: ok, rung: rung || 0, retest: !!it.retest });
+  if (log.length > 500) log.splice(0, log.length - 500);
+  PS.n++; PS.last = it.node; PS.when[it.node] = Date.now();
+  (PS.shown[it.node] = PS.shown[it.node] || {})[it.mode] = true;
+  if (!ok) { PS.misses[it.node] = true; PS.missedItem[it.node] = it.id; PS.retested[it.node] = false; }
+  else if (it.retest) PS.retested[it.node] = true;
+  PS.done = true; touch("progress");
+}
+function renderPractice() {
+  var h = '<div class="stagehead"><span class="eyebrow">Make it come to mind without the lesson in front of you</span><h2>Practice</h2><p class="lede">Problems come from steps you have started, mixed so the same idea is never asked twice in a row. Each idea moves from recall, to telling it apart from a near-twin, to running a whole derivation. Every miss comes back later as a different problem before the session ends.</p></div>';
+  if (!PS) {
+    var pool = practicePool();
+    h += card("key", "A session", pool.length + " ideas in the pool", '<ul class="list"><li>Interleaved: never the same idea twice in a row.</li><li>Derivations come with a hint ladder: take one rung at a time, and only when stuck.</li><li>A miss is retested with a different problem before you finish.</li><li>The next problem appears only when you ask for it.</li></ul><div class="btnrow"><button class="btn primary" data-act="pstart">Start a session</button></div>');
+    var lg = state.progress.practice.log;
+    if (lg.length) { var ok = lg.filter(function (x) { return x.ok; }).length; h += '<p class="note">On record: ' + lg.length + " practice items, " + ok + " solved.</p>"; }
+    return h;
+  }
+  var it = PS.item;
+  if (!it) { h += card("", "", "Nothing to practise yet", '<p>Answer some checks on the map first.</p><div class="btnrow"><button class="btn" data-go="map">Open the map</button></div>'); return h; }
+  var n = NODE[it.node];
+  var head = '<div class="meta"><span class="pill">' + { recall: "Recall", disc: "Discriminate", comp: "Derive" }[it.mode] + "</span>" + (it.retest ? '<span class="pill eosin">Retest after a miss</span>' : "") + '<span class="note">Problem ' + (PS.n + (PS.done ? 0 : 1)) + "</span></div>";
+  if (it.type === "q") {
+    h += card("key", "From: " + n.short, "", head + qHtml(it.id, "practice"));
+  } else {
+    var b = BOARD_BY[it.id];
+    var body = head + "<p class=\"stem\" style=\"font-weight:600\">" + esc(b.task) + "</p>" + field("board." + b.id, "Your working", "Write it out. Take a hint only when stuck.", true);
+    if (PS.rung) body += '<div class="callout small">' + b.rungs.slice(0, PS.rung).map(function (r, i) { return "<div><b>R" + i + ":</b> " + esc(r) + "</div>"; }).join("") + "</div>";
+    if (!PS.revealed) body += '<div class="btnrow"><button class="btn" data-act="rung"' + (PS.rung >= b.rungs.length ? " disabled" : "") + ">" + (PS.rung ? "Next hint" : "I'm stuck: smallest hint") + '</button><button class="btn primary" data-act="breveal">I\'m done: show the solution</button></div>';
+    else {
+      body += '<div class="verdict right"><b>Solution</b><p class="small">' + esc(b.answer) + "</p></div>";
+      if (!PS.done) body += '<div class="btnrow"><span class="note">Grade yourself honestly:</span><button class="btn" data-act="bgrade" data-ok="1">Got it</button><button class="btn" data-act="bgrade" data-ok="0">Missed or partly</button></div>';
+    }
+    h += card("key", "From: " + n.short, "", body);
+  }
+  var answered = PS.done || (it.type === "q" && last(it.id) && !(draft[it.id] && draft[it.id].retry));
+  h += '<div class="btnrow">' + (answered ? '<button class="btn primary" data-act="pnext">Next problem</button>' : "") + '<button class="btn" data-act="pend">End session</button><button class="btn" data-go="n-' + n.id + '">Open this step</button></div>';
+  return h;
+}
+function renderPracticeEnd() {
+  var open = Object.keys(PS.misses).filter(function (id) { return !PS.retested[id]; });
+  var h = card(open.length ? "trap" : "done", "Session ended", PS.n + " problems", open.length ? "<p>Missed and not yet retested: " + open.map(nodeChip).join(" ") + ". Start a new session and they come first.</p>" : "<p>Every miss in this session was retested.</p>");
+  PS = null;
+  return h + renderPractice();
+}
+
+/* ---------- Write ---------- */
+var pitchSel = null;
+function pitchText(id) {
+  var n = NODE[id];
+  var parts = [];
+  parts.push("Subject: " + n.short + " and a question from cross-lab white-blood-cell classification");
+  parts.push("");
+  parts.push("Dear authors,");
+  parts.push(F("pitch." + id + ".open") || "[Opening: who you are, one line on your problem]");
+  parts.push("");
+  parts.push("Your work, as I understand it: " + ([F(id + ".tldr.piece"), F(id + ".tldr.evidence")].filter(Boolean).join(" ") || "[TL;DR: their piece and their number]"));
+  parts.push("");
+  parts.push("What we see on our side: " + ([F(id + ".chain.mine"), F(id + ".trial.result")].filter(Boolean).join(" ") || "[your observation and your trial result]"));
+  if (F(id + ".chain.then")) parts.push("So: " + F(id + ".chain.then"));
+  parts.push("");
+  parts.push("My question: " + (F(id + ".ask") || "[your question]"));
+  parts.push("");
+  parts.push(F("pitch." + id + ".offer") || "[What you can offer: a split, a measurement, code]");
+  if (F("pitch." + id + ".same")) parts.push(F("pitch." + id + ".same"));
+  parts.push("");
+  parts.push("Amit Kumar");
+  parts.push("ML Lab, NIT Rourkela (supervisor: Prof. Samit Ari)");
+  parts.push("Code and results: github.com/amitrajput786/White-blood-cells-classifier");
+  return parts.join("\n");
+}
+function threadIssues() {
+  var out = [];
+  [1, 2, 3].forEach(function (i) { if (filled("sq" + i, 10) && !filled("h" + i, 10)) out.push("Sub-question " + i + " has no hypothesis."); });
+  POINTS.forEach(function (p) { if (!filled("mitra." + p.id)) out.push("Prof. Mitra's point " + p.n + " has no answer yet."); });
+  if (!filled("tldr.gap")) out.push("The field TL;DR has no gap statement.");
+  if (!MX_ROWS.some(function (r) { return MX_COLS.some(function (c) { return gapOn(r.id + "|" + c.id); }); })) out.push("No cell in the puzzle matrix is marked as a gap.");
+  pitchNodes().forEach(function (n) { if (filled(n.id + ".ask") && !filled(n.id + ".trial.result", 5) && n.trial) out.push(n.short + ": the pitch has a question but no trial result yet."); });
+  if (!satisfied(NODE["e-integrity"])) out.push("Integrity checks are not held yet. Fix them before sending any numbers.");
+  return out;
+}
+function renderWrite() {
+  var h = '<div class="stagehead"><span class="eyebrow">Turn understanding into writing</span><h2>Write</h2><p class="lede">Everything here is assembled from what you wrote on each step. The map supplies structure and checks; every sentence stays yours.</p>' +
+    '<div class="meta"><a class="pill azure" href="#write" data-jump="sec-o-tldr">Field TL;DR</a><a class="pill azure" href="#write" data-jump="sec-o-mitra">Prof. Mitra</a><a class="pill azure" href="#write" data-jump="sec-o-pitch">Author pitches</a><a class="pill azure" href="#write" data-jump="sec-export">Export</a></div></div>';
+  var issues = threadIssues();
+  h += card(issues.length ? "trap" : "done", "Thread check", issues.length ? issues.length + " things to fix before sending" : "Nothing flagged", issues.length ? li(issues, "eosin") : "<p>Every part traces back to your question.</p>");
+
+  /* field TL;DR */
+  var core = NODES.filter(function (n) { return n.group === "found" || n.tier === "core"; });
+  var coreHeld = core.filter(satisfied).length;
+  var gaps = []; MX_ROWS.forEach(function (r) { MX_COLS.forEach(function (c) { var k = r.id + "|" + c.id; if (gapOn(k)) gaps.push(r.name + " × " + c.name + (F("cell." + k) ? ": " + F("cell." + k) : MX_GAPS[k] ? ": " + MX_GAPS[k] : "")); }); });
+  h += card("key", "Output 1", "The field TL;DR", '<div id="sec-o-tldr"></div><p class="muted small">Ready when the foundations and core papers are held: ' + coreHeld + " of " + core.length + ' now. The click you are after: every paper becomes one cell of the matrix, generated by the four factors and the Beer–Lambert model.</p>' +
+    field("tldr.found", "Foundations you stand on (3 to 5 unconditional truths)", "e.g. P(x,y) = P(x|y)P(y); OD = A·S; BN imposes source statistics; accuracy = Σ π·recall.", true) +
+    field("tldr.fail", "The failure, with your numbers (label ID and OOD)", "") +
+    field("tldr.matrix", "The field in one sentence (what shifts × which mechanism × what it costs)", "") +
+    field("tldr.gap", "The gap: an empty cell you can defend", "") +
+    (gaps.length ? '<details data-keep="gaps"><summary>Your marked gaps (' + gaps.length + ")</summary><div class=\"in\">" + li(gaps) + "</div></details>" : "") +
+    field("tldr.rq", "Your research question", "In [setting], how much of [the drop] comes from [factor], and does [approach] reduce it without [cost]?") +
+    '<div class="grid2">' + [1, 2, 3].map(function (i) { return field("sq" + i, "Sub-question " + i, "") + field("h" + i, "Hypothesis " + i + " (it must be able to fail)", "If [change], then [metric] on held-out datasets will [direction] compared with [baseline]."); }).join("") + "</div>" +
+    feedbackBtn("field", "tldr"));
+  var tl = NODES.filter(function (n) { return n.group === "paper" && (filled(n.id + ".tldr.piece", 5) || filled(n.id + ".tldr.problem", 5)); });
+  h += card("", "Collected", "Paper TL;DRs (" + tl.length + ")", tl.length ? tl.map(function (n) { return '<div><h4><a href="#n-' + n.id + '">' + esc(n.short) + '</a></h4><p class="small">' + esc([F(n.id + ".tldr.problem"), F(n.id + ".tldr.piece"), F(n.id + ".tldr.evidence"), F(n.id + ".tldr.limit"), F(n.id + ".tldr.use")].filter(Boolean).join(" · ")) + "</p></div>"; }).join("") : '<p class="muted small">Each paper\'s Step 6 lands here.</p>');
+
+  /* Prof. Mitra */
+  h += card("key", "Output 2", "Proposal to Prof. Mitra's group", '<div id="sec-o-mitra"></div><p class="muted small">Answer her five points in her order. Each point shows the steps that feed it; the hint opens after you write your own.</p>' +
+    field("mitra.open", "Opening: what you accepted from their feedback (WBC first, no WSI, MIDOG later, kappa)", "") +
+    POINTS.map(function (p) { return '<div class="q"><div class="meta"><span class="pill azure">Point ' + p.n + "</span>" + p.nodes.map(nodeChip).join(" ") + "</div><blockquote>" + esc(p.q) + "</blockquote>" + field("mitra." + p.id, "Your answer", "One paragraph, in your words.", true) + hintGate("mitra-" + p.id, "mitra." + p.id, "<p>" + esc(p.hint) + "</p>") + feedbackBtn("mitra", p.id) + "</div>"; }).join("") +
+    field("mitra.close", "Close: at most two questions for them, and the update rhythm you propose", ""));
+
+  /* pitches */
+  var pn = pitchNodes(); if (!pitchSel) pitchSel = NODE["p-tsor"] ? "p-tsor" : pn[0].id;
+  var pid = pitchSel;
+  var missing = [];
+  if (!filled(pid + ".tldr.piece", 5)) missing.push(["TL;DR: their piece", "n-" + pid]);
+  if (!filled(pid + ".chain.mine", 5)) missing.push(["Your observation", "n-" + pid]);
+  if (NODE[pid].trial && !filled(pid + ".trial.result", 5)) missing.push(["Trial result", "n-" + pid]);
+  if (!filled(pid + ".ask", 5)) missing.push(["Your question", "n-" + pid]);
+  h += card("key", "Output 3", "Pitches to other authors", '<div id="sec-o-pitch"></div><p class="muted small">One short email per paper: their piece in your words, what you saw on your data, one question, what you offer. Their work and yours should read as two pieces of the same matrix.</p>' +
+    '<div class="field"><label class="lab" for="pitchsel">Paper</label><select id="pitchsel" data-pitchsel="1">' + pn.map(function (n) { return '<option value="' + n.id + '"' + (n.id === pid ? " selected" : "") + ">" + esc(n.short + " · " + n.title) + "</option>"; }).join("") + "</select></div>" +
+    (missing.length ? '<div class="callout amber small">Still missing from this paper\'s steps: ' + missing.map(function (m) { return '<a href="#' + m[1] + '">' + esc(m[0]) + "</a>"; }).join(", ") + "</div>" : "") +
+    field("pitch." + pid + ".open", "Opening (one or two lines: who you are, why them)", "") +
+    field("pitch." + pid + ".offer", "What you can offer (a split, a measurement, code)", "") +
+    field("pitch." + pid + ".same", "The shared direction, in one sentence", "") +
+    '<div><span class="eyebrow">Preview</span><div class="out" id="pitchPreview">' + esc(pitchText(pid)) + "</div></div>" +
+    '<div class="btnrow"><button class="btn" data-act="copy" data-src="pitch">Copy the pitch</button><span class="note" id="copyMsg-pitch" aria-live="polite"></span></div>' + feedbackBtn("pitch", pid));
+
+  /* export */
+  h += card("", "Export", "Take it out of the map", '<div id="sec-export"></div><p class="muted small">Markdown has your TL;DRs, chains, trial results, the proposal answers and every pitch. The backup holds all your progress as JSON.</p>' +
+    '<div class="btnrow"><button class="btn primary" data-act="savemd">Save Markdown file</button><button class="btn" data-act="copy" data-src="md">Copy Markdown</button><button class="btn" data-act="copy" data-src="json">Copy backup (JSON)</button><span class="note" id="copyMsg-x" aria-live="polite"></span></div>' +
+    '<details data-keep="restore"><summary>Restore from a backup</summary><div class="in"><textarea id="restoreBox" placeholder="Paste a backup JSON here"></textarea><div class="btnrow"><button class="btn" data-act="restore">Restore</button><span class="note" id="restoreMsg" aria-live="polite"></span></div></div></details>');
+  return h;
+}
+function exportMd() {
+  var L = ["# WBC-DG Research Map — export", "", "_" + new Date().toISOString().slice(0, 10) + "_", "", "## Goal", F("goal") || DEFAULT_GOAL, "", "## Field TL;DR"];
+  [["Foundations", "tldr.found"], ["Failure", "tldr.fail"], ["Field in one sentence", "tldr.matrix"], ["Gap", "tldr.gap"], ["Research question", "tldr.rq"]].forEach(function (x) { L.push("**" + x[0] + ":** " + (F(x[1]) || "_(empty)_"), ""); });
+  [1, 2, 3].forEach(function (i) { if (F("sq" + i)) L.push("- SQ" + i + ": " + F("sq" + i) + " — H" + i + ": " + (F("h" + i) || "_(no hypothesis)_")); });
+  L.push("", "## Proposal to Prof. Mitra's group", "", F("mitra.open") || "", "");
+  POINTS.forEach(function (p) { L.push("### Point " + p.n, "> " + p.q, "", F("mitra." + p.id) || "_(empty)_", ""); });
+  L.push(F("mitra.close") || "", "", "## Steps");
+  NODES.forEach(function (n) {
+    if (n.group === "out") return;
+    var keys = [["TL;DR · problem", ".tldr.problem"], ["TL;DR · piece", ".tldr.piece"], ["TL;DR · evidence", ".tldr.evidence"], ["TL;DR · limit", ".tldr.limit"], ["TL;DR · use", ".tldr.use"], ["Their claim", ".chain.their"], ["My observation", ".chain.mine"], ["Therefore", ".chain.then"], ["Trial result", ".trial.result"], ["Reading", ".reading"], ["In my words", ".words"], ["Question to authors", ".ask"]];
+    var rows = keys.filter(function (k) { return F(n.id + k[1]); });
+    if (!rows.length) return;
+    L.push("", "### " + n.title + (n.cite ? " (" + n.cite + ")" : ""), "State: " + STATE_LABEL[nodeState(n)]);
+    rows.forEach(function (k) { L.push("- **" + k[0] + ":** " + F(n.id + k[1])); });
+  });
+  L.push("", "## Pitches");
+  pitchNodes().forEach(function (n) { if (filled(n.id + ".ask", 5)) L.push("", "### " + n.short, "```", pitchText(n.id), "```"); });
+  L.push("", "## Matrix notes");
+  MX_ROWS.forEach(function (r) { MX_COLS.forEach(function (c) { var k = r.id + "|" + c.id; if (F("cell." + k) || gapOn(k)) L.push("- " + r.name + " × " + c.name + (gapOn(k) ? " **[gap]**" : "") + ": " + (F("cell." + k) || MX_GAPS[k] || "")); }); });
+  return L.join("\n");
+}
+
+/* ---------- Evidence ---------- */
+function renderEvidence() {
+  var bins = {}; [0, 30, 50, 70, 90, 100].forEach(function (c) { bins[c] = { n: 0, ok: 0 }; });
+  var all = [];
+  Object.keys(state.progress.answers).forEach(function (qid) { var meta = Q[qid]; if (!meta) return; hist(qid).forEach(function (a) { all.push({ qid: qid, a: a }); if (meta.q.a >= 0 && !a.dk && a.conf != null && bins[a.conf]) { bins[a.conf].n++; if (a.ok) bins[a.conf].ok++; } }); });
+  var h = '<div class="stagehead"><span class="eyebrow">The record of what you actually answered</span><h2>Evidence</h2><p class="lede">This is how the map decides what you hold. It is also the honest answer to “do I understand this field yet?”.</p></div>';
+  var W = 520, H = 230, L = 40, B = 30, T = 14, R = 10, iw = W - L - R, ih = H - T - B;
+  var stops = [0, 30, 50, 70, 90, 100];
+  var svg = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Calibration: share correct at each confidence level"><line class="axis" x1="' + L + '" y1="' + (T + ih) + '" x2="' + (W - R) + '" y2="' + (T + ih) + '"/><line class="axis" x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (T + ih) + '"/>';
+  [0, 50, 100].forEach(function (v) { var y = T + ih - ih * v / 100; svg += '<text x="' + (L - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + v + "%</text>"; });
+  svg += '<path class="diag" d="M' + (L + iw * 0 / 100) + " " + (T + ih) + " L" + (L + iw) + " " + T + '"/>';
+  stops.forEach(function (c) { var x = L + iw * c / 100; var b = bins[c]; var bw = 26; var xb = Math.min(Math.max(x - bw / 2, L + 1), W - R - bw);
+    if (b.n) { var p = b.ok / b.n; var y = T + ih - ih * p; svg += '<rect class="barr" x="' + xb + '" y="' + y + '" width="' + bw + '" height="' + (T + ih - y) + '" opacity=".75"/><text x="' + (xb + bw / 2) + '" y="' + (y - 4) + '" text-anchor="middle">n=' + b.n + "</text>"; }
+    svg += '<text x="' + (xb + bw / 2) + '" y="' + (H - 10) + '" text-anchor="middle">' + c + "%</text>"; });
+  svg += "</svg>";
+  h += card("key", "Calibration", "When you say 90%, are you right 90% of the time?", '<div class="cal">' + svg + '</div><p class="muted small">Bars: share of answers that were right at each confidence you chose. Dashed line: perfect calibration. Bars far below the line at high confidence are misconceptions; bars above it at low confidence are knowledge you don\'t yet trust.</p>');
+  var fc = Object.keys(state.progress.forecasts).filter(function (qid) { return state.progress.forecasts[qid].resolved != null && last(qid); });
+  var hits = fc.filter(function (qid) { return state.progress.forecasts[qid].resolved === last(qid).pick; }).length;
+  h += card("wait", "Forecasts", fc.length ? hits + " of " + fc.length + " forecasts came true" : "No forecast resolved yet", "<p class=\"small\">Forecasts are predictions about your own experiments. Resolve them in each trial section after running it.</p>");
+  var mis = []; Object.keys(Q).forEach(function (qid) { var L2 = last(qid); if (L2 && Q[qid].q.a >= 0 && !L2.ok && !L2.dk && L2.conf >= 70) mis.push(qid); });
+  h += card(mis.length ? "trap" : "done", "Misconceptions", mis.length ? mis.length + " open" : "None open", mis.length ? '<ul class="list eosin">' + mis.map(function (qid) { var m = Q[qid]; return "<li>" + esc(m.q.stem) + " " + (m.node ? nodeChip(m.node) : '<a href="#probe">probe</a>') + "</li>"; }).join("") + "</ul>" : "<p class=\"small\">No wrong answers at 70% confidence or more are standing.</p>");
+  h += card("", "Probe", "Your strands", '<div class="scroll"><table class="tbl"><thead><tr><th>Strand</th><th>Result</th></tr></thead><tbody>' + STRANDS.map(function (s) { var v = strandVerdict(s.id); return "<tr><td>" + esc(s.name) + "</td><td>" + (v ? '<span class="pill ' + (v === "held" ? "ok" : v === "missing" ? "eosin" : "amber") + '">' + v + "</span>" : '<span class="note">not finished</span>') + "</td></tr>"; }).join("") + "</tbody></table></div>");
+  all.sort(function (x, y) { return y.a.at - x.a.at; });
+  h += card("", "Recent answers", "Last " + Math.min(25, all.length), all.length ? '<div class="scroll"><table class="tbl"><thead><tr><th>Question</th><th>Result</th><th>Conf.</th><th>Thinking</th></tr></thead><tbody>' + all.slice(0, 25).map(function (x) { var q = Q[x.qid].q; var res = q.a === -1 ? "forecast" : x.a.dk ? "gap" : x.a.ok ? "right" : "wrong"; return '<tr><td class="small">' + esc(q.stem.length > 90 ? q.stem.slice(0, 88) + "…" : q.stem) + '</td><td><span class="pill ' + (res === "right" ? "ok" : res === "wrong" ? "eosin" : "amber") + '">' + res + '</span></td><td class="num">' + (x.a.conf == null ? "—" : x.a.conf + "%") + '</td><td class="small muted">' + esc(x.a.th || "") + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<p class="muted small">Nothing yet. Start with the probe.</p>');
+  return h;
+}
+
+/* ================= routing ================= */
+function route(keepScroll) {
+  var hash = (location.hash || "").replace("#", "") || "goal";
+  var view = hash, html;
+  if (hash.indexOf("n-") === 0 && NODE[hash.slice(2)]) {
+    var id = hash.slice(2);
+    if (NODE[id].group === "out") { view = "write"; html = renderWrite(); setTimeout(function () { var t = document.getElementById("sec-" + id); if (t && !keepScroll) t.scrollIntoView({ block: "start" }); }, 0); }
+    else { view = "map"; html = renderNode(id); }
+  } else {
+    if (!VIEWS.some(function (v) { return v[0] === hash; })) hash = view = "goal";
+    html = { goal: renderGoal, probe: renderProbe, map: renderMap, matrix: renderMatrix, practice: renderPractice, write: renderWrite, evidence: renderEvidence }[hash]();
+  }
+  viewEl.innerHTML = html;
+  tabRow.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-tab") === view); });
+  if (!keepScroll) window.scrollTo(0, 0);
+}
+function rerender() {
+  var y = window.scrollY;
+  var open = [].map.call(document.querySelectorAll("details[data-keep][open]"), function (d) { return d.getAttribute("data-keep"); });
+  route(true);
+  open.forEach(function (k) { var d = document.querySelector('details[data-keep="' + k + '"]'); if (d) d.open = true; });
+  window.scrollTo(0, y);
+}
+function go(target) { if (("#" + target) === location.hash) rerender(); else location.hash = target; }
+window.addEventListener("hashchange", function () { route(false); });
+
+/* ================= copy, download, feedback ================= */
+function copyText(txt, msgId) {
+  var msg = document.getElementById(msgId);
+  function fallback() { var ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand("copy"); } catch (e) {} document.body.removeChild(ta); if (msg) msg.textContent = ok ? "Copied." : "Copy was blocked here. Use Save Markdown instead."; }
+  try { navigator.clipboard.writeText(txt).then(function () { if (msg) msg.textContent = "Copied."; }, fallback); } catch (e) { fallback(); }
+}
+function saveMd(btn) {
+  var md = exportMd(), msg = document.getElementById("copyMsg-x");
+  if (!window.claude || !window.claude.use) { copyText(md, "copyMsg-x"); return; }
+  btn.disabled = true;
+  window.claude.use("downloads").then(function (dl) {
+    if (!dl) { copyText(md, "copyMsg-x"); btn.disabled = false; return; }
+    return dl.save({ filename: "wbc-dg-research-map.md", data: md }).then(function () { if (msg) msg.textContent = "Saved."; btn.disabled = false; }, function (e) { if (msg) msg.textContent = e && e.code === "cancelled" ? "Save cancelled." : "Saving was not possible here; copied instead."; if (!(e && e.code === "cancelled")) copyText(md, "copyMsg-x"); btn.disabled = false; });
+  }).catch(function () { copyText(md, "copyMsg-x"); btn.disabled = false; });
+}
+function feedbackInput(kind, id) {
+  if (kind === "tldr") { var n = NODE[id]; return { ref: "Template: problem / their piece / evidence (one number) / limit / use for the student's goal (few parameters, unseen-lab per-class performance, device).\nPaper: " + (n.cite || n.title) + "\nWhat the paper contributes: " + n.piece + "\nNumbers: " + (n.numbers || []).join(" ") + "\nConnection to the student's data: " + n.link, draft: [["Problem", ".tldr.problem"], ["Piece", ".tldr.piece"], ["Evidence", ".tldr.evidence"], ["Limit", ".tldr.limit"], ["Use", ".tldr.use"]].map(function (k) { return k[0] + ": " + F(id + k[1]); }).join("\n") }; }
+  if (kind === "pitch") { var m = NODE[id]; return { ref: "A short first email to the authors of " + (m.cite || m.title) + ". It must state their piece accurately, show the student's own result, ask one specific question, offer something concrete, and stay under 200 words.\nWhat the paper contributes: " + m.piece + "\nNumbers: " + (m.numbers || []).join(" "), draft: pitchText(id) }; }
+  if (kind === "mitra") { var p = POINTS.filter(function (x) { return x.id === id; })[0]; return { ref: "Reviewer's point " + p.n + ": " + p.q + "\nWhat a strong answer covers: " + p.hint, draft: F("mitra." + id) }; }
+  return { ref: "A field TL;DR for domain generalization in white-blood-cell classification. Facts: PBC→Raabin accuracy 99.57%→84.89%, macro-F1 0.556, eosinophil F1 0.10, basophil 0.15; merged split 99% is in-distribution; unseen source 61% on 100 images (about 51–70%), lymphocyte 0.42, monocyte 0.46. Every sub-question needs a hypothesis that can fail.", draft: ["Foundations: " + F("tldr.found"), "Failure: " + F("tldr.fail"), "Field: " + F("tldr.matrix"), "Gap: " + F("tldr.gap"), "RQ: " + F("tldr.rq"), "SQ1: " + F("sq1") + " | H1: " + F("h1"), "SQ2: " + F("sq2") + " | H2: " + F("h2"), "SQ3: " + F("sq3") + " | H3: " + F("h3")].join("\n") };
+}
+function feedback(btn) {
+  var out = document.getElementById(btn.getAttribute("data-out"));
+  var inp = feedbackInput(btn.getAttribute("data-kind"), btn.getAttribute("data-id"));
+  out.hidden = false;
+  if (inp.draft.replace(/^[^:\n]*:\s*$/gm, "").trim().length < 40) { out.textContent = "Write a draft first. Claude reviews it; it does not write it for you."; return; }
+  if (!window.claude || !window.claude.use) { out.textContent = "Review needs the page open on claude.ai."; return; }
+  out.textContent = "Asking Claude…"; btn.disabled = true;
+  window.claude.use("sample").then(function (sample) {
+    if (!sample) { out.textContent = "Review isn't available in this view."; btn.disabled = false; return; }
+    var prompt = "You are reviewing a draft by Amit Kumar, a research student at NIT Rourkela working on lightweight domain generalization for white-blood-cell classification. Do not rewrite the draft and do not supply replacement sentences. Reply with at most five short bullet points, plain text: (1) any statement that contradicts the reference facts, (2) any required part that is missing, (3) any claim that is vague or overstated, (4) one question that would make it sharper.\n\nREFERENCE:\n" + inp.ref + "\n\nDRAFT:\n" + inp.draft;
+    return sample(prompt, { onText: function (u) { out.textContent = u.text; } }).then(function (r) { out.textContent = r.text; btn.disabled = false; });
+  }).catch(function (e) { out.textContent = e && e.code === "not_granted" ? "Review was not allowed for this page." : e && e.code === "rate_limited" ? "Too many requests just now. Try again in a few minutes." : "Review failed. Try again later."; btn.disabled = false; });
+}
+
+/* ================= events ================= */
+var inputTimer = null;
+document.addEventListener("input", function (e) {
+  var t = e.target;
+  if (t.hasAttribute && t.hasAttribute("data-f")) {
+    state.writing.f[t.getAttribute("data-f")] = t.value;
+    clearTimeout(inputTimer); inputTimer = setTimeout(function () { touch("writing"); }, 400);
+    var pv = document.getElementById("pitchPreview"); if (pv && pitchSel) pv.textContent = pitchText(pitchSel);
+  }
+  if (t.hasAttribute && t.hasAttribute("data-th")) { var q = t.getAttribute("data-th"); (draft[q] = draft[q] || {}).th = t.value; }
+});
+document.addEventListener("change", function (e) {
+  var t = e.target;
+  if (t.hasAttribute("data-pick")) { var q = t.getAttribute("data-pick"); (draft[q] = draft[q] || {}).pick = +t.value; }
+  if (t.hasAttribute("data-trial")) { state.progress.trials[t.getAttribute("data-trial")] = t.value; touch("progress"); rerender(); }
+  if (t.hasAttribute("data-pitchsel")) { pitchSel = t.value; rerender(); }
+});
+document.addEventListener("keydown", function (e) {
+  var g = e.target.closest && e.target.closest("[data-go], td[data-cell]");
+  if (g && (e.key === "Enter" || e.key === " ") && (g.tagName === "g" || g.tagName === "TD")) { e.preventDefault(); g.click(); }
+});
+document.addEventListener("click", function (e) {
+  var t = e.target;
+  var tab = t.closest("[data-tab]"); if (tab) { go(tab.getAttribute("data-tab")); return; }
+  var goEl = t.closest("[data-go]"); if (goEl && !t.closest("td[data-cell]")) { go(goEl.getAttribute("data-go")); return; }
+  var cg = t.closest("[data-cellgo]"); if (cg) { selCell = cg.getAttribute("data-cellgo"); go("matrix"); return; }
+  var jump = t.closest("[data-jump]"); if (jump) { e.preventDefault(); var tg = document.getElementById(jump.getAttribute("data-jump")); if (tg) tg.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  var cell = t.closest("td[data-cell]"); if (cell) { var k = cell.getAttribute("data-cell"); selCell = selCell === k ? null : k; rerender(); return; }
+  var cf = t.closest("[data-conf]"); if (cf) { var q1 = cf.getAttribute("data-conf"); var d1 = draft[q1] = draft[q1] || {}; d1.conf = +cf.getAttribute("data-c"); d1.dk = false; cf.parentNode.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", String(b === cf)); }); return; }
+  var dk = t.closest("[data-dk]"); if (dk) { var q2 = dk.getAttribute("data-dk"); var d2 = draft[q2] = draft[q2] || {}; d2.dk = !d2.dk; if (d2.dk) d2.conf = null; dk.parentNode.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", String(b === dk ? d2.dk : false)); }); return; }
+  var act = t.closest("[data-act]"); if (!act) return;
+  var a = act.getAttribute("data-act"), qid = act.getAttribute("data-q");
+  if (a === "submit") {
+    var box = act.closest("[data-qbox]"); var ctx = box ? box.getAttribute("data-ctx") : "";
+    if (!submit(qid)) return;
+    if (ctx === "practice" && PS && PS.item && PS.item.id === qid) { var Lq = last(qid); logPractice(PS.item, !!Lq.ok, 0); }
+    rerender(); return;
+  }
+  if (a === "retry") { draft[qid] = { retry: true }; rerender(); return; }
+  if (a === "resolve") { var sel = document.querySelector('[data-resolve-sel="' + qid + '"]'); if (!sel || sel.value === "") return; state.progress.forecasts[qid] = { resolved: +sel.value, at: Date.now() }; touch("progress"); rerender(); return; }
+  if (a === "gap") { var c = act.getAttribute("data-cell"); state.progress.gaps[c] = !gapOn(c); touch("progress"); rerender(); return; }
+  if (a === "reveal") { revealed[act.getAttribute("data-key")] = true; rerender(); return; }
+  if (a === "clearprobe") {
+    if (!clearArmed) { clearArmed = true; rerender(); return; }
+    clearArmed = false; Object.keys(PROBE).forEach(function (s) { PROBE[s].forEach(function (q) { delete state.progress.answers[q.id]; delete draft[q.id]; }); }); touch("progress"); rerender(); return;
+  }
+  if (a === "pstart") { PS = { n: 0, last: null, shown: {}, misses: {}, retested: {}, missedItem: {}, when: {}, item: null, rung: 0, revealed: false, done: false }; PS.item = pickItem(); rerender(); return; }
+  if (a === "pnext") { PS.item = pickItem(); rerender(); window.scrollTo(0, 0); return; }
+  if (a === "pend") { viewEl.innerHTML = renderPracticeEnd(); window.scrollTo(0, 0); return; }
+  if (a === "rung") { PS.rung++; rerender(); return; }
+  if (a === "breveal") { PS.revealed = true; rerender(); return; }
+  if (a === "bgrade") { logPractice(PS.item, act.getAttribute("data-ok") === "1", PS.rung); rerender(); return; }
+  if (a === "feedback") { feedback(act); return; }
+  if (a === "savemd") { saveMd(act); return; }
+  if (a === "copy") { var src = act.getAttribute("data-src"); if (src === "pitch") copyText(pitchText(pitchSel), "copyMsg-pitch"); else if (src === "md") copyText(exportMd(), "copyMsg-x"); else copyText(JSON.stringify({ map: "wbcdg-research-map", v: 1, progress: state.progress, writing: state.writing }), "copyMsg-x"); return; }
+  if (a === "restore") {
+    var msg = document.getElementById("restoreMsg");
+    try { var obj = JSON.parse(document.getElementById("restoreBox").value); if (!obj || obj.map !== "wbcdg-research-map") throw 0; state.progress = Object.assign(blankProgress(), obj.progress); state.writing = Object.assign(blankWriting(), obj.writing); touch("progress"); touch("writing"); rerender(); var m2 = document.getElementById("restoreMsg"); if (m2) m2.textContent = "Restored."; }
+    catch (err) { if (msg) msg.textContent = "That isn't a backup from this map. Copy it again with “Copy backup (JSON)”."; }
+    return;
+  }
+});
+
+route(false);
+initCloud();
+})();
+</script>
